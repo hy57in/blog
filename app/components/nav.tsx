@@ -27,14 +27,16 @@ export function Navbar() {
           id="nav"
         >
           <div className="flex flex-row space-x-0">
-            {Object.entries(navItems).map(([path, { name }]) => {
+            {Object.entries(navItems).map(([path, { name }], index) => {
               const isActive = pathname === path || (path === '/blog' && pathname?.startsWith('/blog'))
 
               return (
                 <Link
                   key={path}
                   href={path}
-                  className={`flex align-middle relative py-1 px-2 m-1 transition-colors ${
+                  className={`flex align-middle relative py-1 m-1 transition-colors ${
+                    index === 0 ? 'pl-0 pr-2' : 'px-2'
+                  } ${
                     isActive
                       ? 'text-primary dark:text-primary-dark font-medium'
                       : 'text-text-secondary dark:text-text-secondary-dark hover:text-primary dark:hover:text-primary-dark'

@@ -35,17 +35,6 @@ export default function Footer() {
             className="flex items-center footer-link"
             rel="noopener noreferrer"
             target="_blank"
-            href="https://github.com/hy57in"
-          >
-            <ArrowIcon />
-            <p className="ml-2 h-7">github</p>
-          </a>
-        </li>
-        <li>
-          <a
-            className="flex items-center footer-link"
-            rel="noopener noreferrer"
-            target="_blank"
             href="https://github.com/hy57in/blog"
           >
             <ArrowIcon />
