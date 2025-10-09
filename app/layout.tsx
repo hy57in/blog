@@ -12,16 +12,16 @@ import themeEffect from '../utils/themeEffect'
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: 'Next.js Portfolio Starter',
-    template: '%s | Next.js Portfolio Starter',
+    default: 'Hyojin Kim',
+    template: '%s | Hyojin Kim',
   },
-  description: 'This is my portfolio.',
+  description: '안녕하세요, 프론트엔드 개발자 김효진입니다.',
   openGraph: {
-    title: 'My Portfolio',
-    description: 'This is my portfolio.',
+    title: "Hyojin's Blog",
+    description: '안녕하세요, 프론트엔드 개발자 김효진입니다.',
     url: baseUrl,
-    siteName: 'My Portfolio',
-    locale: 'en_US',
+    siteName: "Hyojin's Blog",
+    locale: 'ko_KR',
     type: 'website',
   },
   robots: {
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
 }
 
-const cx = (...classes) => classes.filter(Boolean).join(' ')
+const cx = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(' ')
 
 export default function RootLayout({
   children,
@@ -52,11 +52,10 @@ export default function RootLayout({
         GeistSans.variable,
         GeistMono.variable
       )}
+      suppressHydrationWarning
     >
-      <head>
-        <script dangerouslySetInnerHTML={{__html: `(${themeEffect.toString()})()`}}/>
-      </head>
       <body className="antialiased max-w-xl mx-4 mt-8 lg:mx-auto">
+        <script dangerouslySetInnerHTML={{__html: `(${themeEffect.toString()})()`}}/>
         <main className="flex-auto min-w-0 mt-6 flex flex-col px-2 md:px-0">
           <Navbar />
           {children}

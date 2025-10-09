@@ -1,42 +1,62 @@
-# Portfolio Blog Starter
+# Hyojin's Blog
 
-This is a porfolio site template complete with a blog. Includes:
+안녕하세요, 프론트엔드 개발자 김효진의 개인 블로그입니다.
 
-- MDX and Markdown support
-- Optimized for SEO (sitemap, robots, JSON-LD schema)
-- RSS Feed
-- Dynamic OG images
-- Syntax highlighting
-- Tailwind v4
-- Vercel Speed Insights / Web Analytics
-- Geist font
+## 🚀 Tech Stack
 
-## Demo
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript (Strict Mode)
+- **Styling**: Tailwind CSS v4
+- **Content**: MDX
+- **Database**: Vercel Postgres (조회수 카운터)
+- **Analytics**: Vercel Analytics & Speed Insights
+- **Deployment**: Vercel
 
-https://portfolio-blog-starter.vercel.app
+## ✨ Features
 
-## How to Use
+- 📝 MDX 블로그 포스팅
+- 🎨 다크모드 지원
+- 📊 조회수 카운터 (Vercel Postgres)
+- 🔍 SEO 최적화 (sitemap, robots, JSON-LD schema)
+- 📡 RSS Feed
+- 🖼️ 동적 OG 이미지 생성
+- 💅 코드 구문 강조 (sugar-high)
+- ⚡ Turbopack으로 빠른 개발 환경
 
-You can choose from one of the following two methods to use this repository:
-
-### One-Click Deploy
-
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=vercel-examples):
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vercel/examples/tree/main/solutions/blog&project-name=blog&repository-name=blog)
-
-### Clone and Deploy
-
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [pnpm](https://pnpm.io/installation) to bootstrap the example:
+## 🛠️ Development
 
 ```bash
-pnpm create next-app --example https://github.com/vercel/examples/tree/main/solutions/blog blog
-```
+# Install dependencies
+pnpm install
 
-Then, run Next.js in development mode:
-
-```bash
+# Run development server with Turbopack
 pnpm dev
+
+# Build for production
+pnpm build
+
+# Start production server
+pnpm start
 ```
 
-Deploy it to the cloud with [Vercel](https://vercel.com/templates) ([Documentation](https://nextjs.org/docs/app/building-your-application/deploying)).
+## 📝 Adding Blog Posts
+
+1. `/posts` 디렉토리에 `.mdx` 파일 생성
+2. Frontmatter 작성:
+   ```yaml
+   ---
+   title: '포스트 제목'
+   publishedAt: '2025-01-01'
+   summary: '포스트 요약'
+   ---
+   ```
+3. 마크다운 콘텐츠 작성
+
+## 🔗 Links
+
+- **GitHub**: [@hy57in](https://github.com/hy57in)
+- **Source Code**: [hy57in/blog](https://github.com/hy57in/blog)
+
+## 📄 License
+
+MIT License
