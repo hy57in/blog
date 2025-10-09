@@ -45,7 +45,18 @@ function CustomLink(props: any) {
 }
 
 function RoundedImage(props: any) {
-  return <Image alt={props.alt} className="rounded-lg" {...props} />
+  // height가 없으면 width에 비례하여 자동 계산
+  const { width, height, ...restProps } = props
+  const finalHeight = height || Math.round(width * 0.6) // 기본 비율 5:3
+  
+  return <Image 
+    alt={props.alt} 
+    className="rounded-lg max-w-full h-auto" 
+    width={width}
+    height={finalHeight}
+    style={{ maxWidth: '100%', height: 'auto' }}
+    {...restProps} 
+  />
 }
 
 function Code({ children, ...props }: { children: string, [key: string]: any }) {
@@ -60,8 +71,10 @@ function slugify(str: string) {
     .trim() // Remove whitespace from both ends of a string
     .replace(/\s+/g, '-') // Replace spaces with -
     .replace(/&/g, '-and-') // Replace & with 'and'
-    .replace(/[^\w\-]+/g, '') // Remove all non-word characters except for -
+    // 한국어, 일본어, 중국어 문자는 유지하고 특수문자만 제거
+    .replace(/[^\w\u3131-\u3163\uac00-\ud7a3\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\-]+/g, '')
     .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
 }
 
 function createHeading(level: number) {

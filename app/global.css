@@ -17,7 +17,8 @@
 }
 
 ::selection {
-  @apply bg-primary text-white;
+  background-color: rgba(218, 176, 160, 0.5);
+  color: inherit;
 }
 
 :root {
@@ -30,6 +31,7 @@
   --sh-jsxliterals: #6266d1;
   --sh-property: #e25a1c;
   --sh-entity: #e25a1c;
+  --sh-space: #f8f9fa;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,6 +40,7 @@
     --sh-identifier: white;
     --sh-keyword: #f47067;
     --sh-string: #0fa295;
+    --sh-space: #1a1a1a;
   }
   html {
     color-scheme: dark;
@@ -46,6 +49,33 @@
 
 html {
   min-width: 360px;
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* 모바일 반응형 처리 */
+@media (max-width: 768px) {
+  .prose {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  .prose img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  .prose pre {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  
+  .prose code {
+    word-break: break-word;
+  }
 }
 
 .prose .anchor {
@@ -86,6 +116,11 @@ html {
   @apply rounded-lg overflow-x-auto py-2 px-3 text-sm;
   @apply bg-neutral-50 dark:bg-neutral-900;
   @apply border border-neutral-200 dark:border-neutral-800;
+  background-color: var(--sh-space) !important;
+}
+
+.prose pre code {
+  background-color: transparent !important;
 }
 
 .prose code {
