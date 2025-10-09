@@ -2,9 +2,22 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+/* Anthropic-inspired color palette */
+@theme {
+  --color-primary: #d97757;
+  --color-primary-dark: #f0a080;
+  --color-background: #fafaf9;
+  --color-background-dark: #191919;
+  --color-text: #1a1a1a;
+  --color-text-dark: #e8e8e8;
+  --color-text-secondary: #6b6b6b;
+  --color-text-secondary-dark: #9ca3af;
+  --color-border: #e5e5e5;
+  --color-border-dark: #2a2a2a;
+}
+
 ::selection {
-  background-color: #47a3f3;
-  color: #fefefe;
+  @apply bg-primary text-white;
 }
 
 :root {
@@ -50,7 +63,14 @@ html {
 }
 
 .prose a {
-  @apply underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em];
+  @apply text-primary dark:text-primary-dark;
+  @apply underline decoration-primary dark:decoration-primary-dark;
+  @apply underline-offset-2 decoration-[0.1em];
+  @apply transition-opacity hover:opacity-75;
+}
+
+.prose a:visited {
+  @apply text-primary dark:text-primary-dark;
 }
 
 .prose .anchor:after {
@@ -63,11 +83,15 @@ html {
 }
 
 .prose pre {
-  @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-200 dark:border-neutral-900 py-2 px-3 text-sm;
+  @apply rounded-lg overflow-x-auto py-2 px-3 text-sm;
+  @apply bg-neutral-50 dark:bg-neutral-900;
+  @apply border border-neutral-200 dark:border-neutral-800;
 }
 
 .prose code {
   @apply px-1 py-0.5 rounded-lg;
+  @apply bg-neutral-100 dark:bg-neutral-800;
+  @apply text-text dark:text-text-dark;
 }
 
 .prose pre code {
@@ -86,23 +110,27 @@ html {
 }
 
 .prose p {
-  @apply my-4 text-neutral-800 dark:text-neutral-200;
+  @apply my-4 text-text dark:text-text-dark;
 }
 
 .prose h1 {
   @apply text-4xl font-medium tracking-tight mt-6 mb-2;
+  @apply text-text dark:text-text-dark;
 }
 
 .prose h2 {
   @apply text-xl font-medium tracking-tight mt-6 mb-2;
+  @apply text-text dark:text-text-dark;
 }
 
 .prose h3 {
   @apply text-xl font-medium tracking-tight mt-6 mb-2;
+  @apply text-text dark:text-text-dark;
 }
 
 .prose h4 {
   @apply text-lg font-medium tracking-tight mt-6 mb-2;
+  @apply text-text dark:text-text-dark;
 }
 
 .prose strong {
@@ -111,10 +139,12 @@ html {
 
 .prose ul {
   @apply list-disc pl-6;
+  @apply text-text dark:text-text-dark;
 }
 
 .prose ol {
   @apply list-decimal pl-6;
+  @apply text-text dark:text-text-dark;
 }
 
 .prose > :first-child {
@@ -149,4 +179,23 @@ table {
 
 .title {
   text-wrap: balance;
+}
+
+/* Navigation links */
+.nav-link {
+  @apply text-text-secondary dark:text-text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors;
+}
+
+/* Footer links */
+.footer-link {
+  @apply text-text-secondary dark:text-text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors;
+}
+
+/* Blog post links */
+.blog-post-title {
+  @apply text-text dark:text-text-dark;
+}
+
+.blog-post-link:hover .blog-post-title {
+  @apply text-primary dark:text-primary-dark;
 }

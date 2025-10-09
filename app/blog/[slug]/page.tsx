@@ -91,7 +91,7 @@ export default async function Blog(props: { params: Promise<{ slug: string }> })
         {post.metadata.title}
       </h1>
       <div className="flex justify-between items-center mt-2 mb-8 text-sm">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+        <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
           {formatDate(post.metadata.publishedAt)}
         </p>
         <Suspense>
