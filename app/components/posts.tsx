@@ -5,7 +5,7 @@ export function BlogPosts() {
   let allBlogs = getBlogPosts()
 
   return (
-    <div>
+    <ul aria-label="Blog Posts" role="list">
       {allBlogs
         .sort((a, b) => {
           if (
@@ -18,19 +18,19 @@ export function BlogPosts() {
         .map((post) => (
           <Link
             key={post.slug}
-            className="flex flex-col space-y-1 mb-4"
+            className="flex flex-col space-y-1"
             href={`/blog/${post.slug}`}
           >
-            <div className="w-full flex flex-col md:flex-row space-x-0 md:space-x-2">
-              <p className="text-neutral-600 dark:text-neutral-400 w-[100px] tabular-nums">
-                {formatDate(post.metadata.publishedAt, false)}
-              </p>
-              <p className="text-neutral-900 dark:text-neutral-100 tracking-tight">
+            <li className="w-full flex justify-between flex-col md:flex-row space-x-0 md:space-x-2 py-4 blog-post-link border-b" style={{ borderBottomColor: '#14141333', borderBottomWidth: '1px' }}>
+              <div className="tracking-tight transition-colors blog-post-title font-medium">
                 {post.metadata.title}
-              </p>
-            </div>
+              </div>
+              <div className="tabular-nums text-text-secondary dark:text-text-secondary-dark">
+                {formatDate(post.metadata.publishedAt, false)}
+              </div>
+            </li>
           </Link>
         ))}
-    </div>
+    </ul>
   )
 }
