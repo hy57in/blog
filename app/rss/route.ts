@@ -27,9 +27,9 @@ export async function GET() {
   const rssFeed = `<?xml version="1.0" encoding="UTF-8" ?>
   <rss version="2.0">
     <channel>
-        <title>My Portfolio</title>
+        <title>Hyojin's Blog</title>
         <link>${baseUrl}</link>
-        <description>This is my portfolio RSS feed</description>
+        <description>안녕하세요, 프론트엔드 개발자 김효진의 블로그입니다.</description>
         ${itemsXml}
     </channel>
   </rss>`

@@ -14,7 +14,8 @@ export async function generateStaticParams() {
   }))
 }
 
-export function generateMetadata({ params }) {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   let post = getBlogPosts().find((post) => post.slug === params.slug)
   if (!post) {
     return
@@ -54,7 +55,8 @@ export function generateMetadata({ params }) {
   }
 }
 
-export default async function Blog({ params }) {
+export default async function Blog(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   let post = getBlogPosts().find((post) => post.slug === params.slug)
 
   if (!post) {
@@ -80,7 +82,7 @@ export default async function Blog({ params }) {
             url: `${baseUrl}/blog/${post.slug}`,
             author: {
               '@type': 'Person',
-              name: 'My Portfolio',
+              name: 'Hyojin Kim',
             },
           }),
         }}
