@@ -35,11 +35,28 @@ function readMDXFile(filePath: string) {
   return parseFrontmatter(rawContent)
 }
 
+function createSlug(title: string): string {
+  return title
+    .toLowerCase()
+    // 한국어, 일본어, 중국어 문자를 하이픈으로 변환
+    .replace(/[^a-zA-Z0-9ㄱ-ㅎ가-힣ぁ-んァ-ン一-龯-ー\s-]/g, '')
+    // 공백과 연속된 하이픈을 하나의 하이픈으로 변환
+    .replace(/[\s-]+/g, '-')
+    // 앞뒤 하이픈 제거
+    .replace(/^-+|-+$/g, '')
+}
+
 function getMDXData(dir: string) {
   let mdxFiles = getMDXFiles(dir)
   return mdxFiles.map((file) => {
     let { metadata, content } = readMDXFile(path.join(dir, file))
+    // 파일명을 slug로 사용하되, 한국어 제목이 있으면 제목 기반 slug 생성
     let slug = path.basename(file, path.extname(file))
+    
+    // 한국어 제목이 있으면 제목 기반으로 slug 생성
+    if (metadata.title && /[ㄱ-ㅎ가-힣]/.test(metadata.title)) {
+      slug = createSlug(metadata.title)
+    }
 
     return {
       metadata,
@@ -52,6 +69,8 @@ function getMDXData(dir: string) {
 export function getBlogPosts() {
   return getMDXData(path.join(process.cwd(), 'posts'))
 }
+
+export { createSlug }
 
 export function formatDate(date: string, includeRelative = false) {
   let currentDate = new Date()
