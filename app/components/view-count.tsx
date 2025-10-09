@@ -10,7 +10,7 @@ export const ViewCount = async ({slug}: Props) => {
   const count = views.find((view) => view.slug === slug)?.count || 0;
 
   return (
-  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+  <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
     {count?.toLocaleString()} Views
   </p>
   )
