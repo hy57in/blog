@@ -71,8 +71,10 @@ function slugify(str: string) {
     .trim() // Remove whitespace from both ends of a string
     .replace(/\s+/g, '-') // Replace spaces with -
     .replace(/&/g, '-and-') // Replace & with 'and'
-    .replace(/[^\w\-]+/g, '') // Remove all non-word characters except for -
+    // 한국어, 일본어, 중국어 문자는 유지하고 특수문자만 제거
+    .replace(/[^\w\u3131-\u3163\uac00-\ud7a3\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\-]+/g, '')
     .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
 }
 
 function createHeading(level: number) {

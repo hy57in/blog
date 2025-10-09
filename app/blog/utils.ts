@@ -50,13 +50,8 @@ function getMDXData(dir: string) {
   let mdxFiles = getMDXFiles(dir)
   return mdxFiles.map((file) => {
     let { metadata, content } = readMDXFile(path.join(dir, file))
-    // 파일명을 slug로 사용하되, 한국어 제목이 있으면 제목 기반 slug 생성
+    // 파일명을 slug로 사용
     let slug = path.basename(file, path.extname(file))
-    
-    // 한국어 제목이 있으면 제목 기반으로 slug 생성
-    if (metadata.title && /[ㄱ-ㅎ가-힣]/.test(metadata.title)) {
-      slug = createSlug(metadata.title)
-    }
 
     return {
       metadata,
