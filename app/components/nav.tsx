@@ -20,13 +20,13 @@ export function Navbar() {
   const pathname = usePathname()
 
   return (
-    <aside className="-ml-[8px] mb-16 tracking-tight">
-      <div className="lg:sticky lg:top-20 flex justify-between">
+    <aside className="fixed top-0 left-0 right-0 z-50 bg-background/80 dark:bg-background-dark/80 backdrop-blur-md">
+      <div className="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center tracking-tight">
         <nav
-          className="flex flex-row items-start relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
+          className="flex flex-row items-center relative px-0 fade md:overflow-auto scroll-pr-6"
           id="nav"
         >
-          <div className="flex flex-row space-x-0 pr-10">
+          <div className="flex flex-row space-x-0">
             {Object.entries(navItems).map(([path, { name }]) => {
               const isActive = pathname === path || (path === '/blog' && pathname?.startsWith('/blog'))
 
