@@ -4,6 +4,7 @@ import { formatDate, getBlogPosts } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
 import { ViewCount } from 'app/components/view-count'
 import { Suspense } from 'react'
+import Link from 'next/link'
 
 
 export async function generateStaticParams() {
