@@ -1,12 +1,10 @@
 ---
-title: '수백만 동적 페이지를 위한 오늘의집 커뮤니티 Sitemap 자동화 시스템 구축기'
+title: '수백만 동적 페이지를 위한 커뮤니티 Sitemap 자동화 시스템 구축기'
 publishedAt: '2025-09-13'
-summary: '오늘의집 커뮤니티의 SEO 개선을 위해 수백만 개의 동적 페이지를 자동으로 관리하는 사이트맵 시스템을 구축한 경험을 공유합니다.'
+summary: '커뮤니티의 테크니컬 SEO 개선을 위해 수백만 개의 동적 페이지를 자동으로 관리하는 사이트맵 시스템을 구축한 경험을 공유합니다.'
 ---
 
-안녕하세요! 오늘의집 콘텐츠 > 커뮤니티 팀의 Software Engineer 모리입니다. 🐤
-
-오늘의집에 합류하여 처음 맡은 과업은 커뮤니티의 SEO(검색 엔진 최적화)를 개선하는 프로젝트였습니다. 저희 팀의 핵심 목표(KR)는 **웹 페이지의 외부 유입을 늘려 일간 커뮤니티 활성 사용자(AU)를 성장시키는 것**입니다. 사용자가 구매 결정을 내리는 과정에서 겪는 문제를 해결해 주는 커뮤니티를 만드는 것이 저희의 미션이며, 이 목표를 달성하는 데 SEO는 가장 중요한 열쇠 중 하나였습니다.
+글 작성 당시 재직중인 회사에 합류하여 처음 맡은 과업은 커뮤니티 서비스의 SEO(검색 엔진 최적화)를 개선하는 프로젝트였습니다. 저희 팀의 핵심 목표(KR)는 **웹 페이지의 외부 유입을 늘려 일간 커뮤니티 활성 사용자(AU)를 성장시키는 것**입니다. 사용자가 구매 결정을 내리는 과정에서 겪는 문제를 해결해 주는 커뮤니티를 만드는 것이 미션이며, 이 목표를 달성하는 데 SEO는 가장 중요한 열쇠 중 하나였습니다.
 
 웹을 통한 오가닉(organic) 유입은 광고 비용 없이 사용자를 확보할 수 있다는 점에서 비즈니스 가치가 매우 높습니다. 이 과제의 중요성을 다시 한번 느끼며, 검색 엔진에 우리 콘텐츠를 효과적으로 노출시킬 방법을 고민하기 시작했습니다.
 
@@ -28,12 +26,32 @@ summary: '오늘의집 커뮤니티의 SEO 개선을 위해 수백만 개의 동
 
 검색 엔진의 크롤링 자원, 즉 '크롤링 예산(Crawl Budget)'은 한정되어 있습니다. 수많은 페이지를 더 빠르고 효율적으로 색인시키려면, 우리 웹사이트의 중요한 페이지 목록을 담은 **사이트맵(Sitemap)을 제출**하여 검색 엔진을 친절하게 안내해줄 필요가 있었습니다.
 
+<div style={{ 
+  display: 'flex', 
+  gap: '20px', 
+  justifyContent: 'center', 
+  flexWrap: 'wrap',
+  maxWidth: '100%',
+  overflow: 'hidden'
+}}>
+  <Image 
+    src="/images/sitemap-automation/submit-sitemap.png" 
+    alt="커뮤니티 리스트 페이지"
+    width={300}
+  />
+  <Image 
+    src="/images/sitemap-automation/sitemap-example.png" 
+    alt="커뮤니티 상세 페이지"
+    width={300}
+  />
+</div>
+
 ## 동적으로 늘어나는 커뮤니티 게시글
 
-일반적인 정적 웹사이트라면 사이트맵 생성기를 이용해 `sitemap.xml` 파일을 만들어 제출하면 됩니다. 하지만 오늘의집 커뮤니티는 상황이 달랐습니다.
+일반적인 정적 웹사이트라면 사이트맵 생성기를 이용해 `sitemap.xml` 파일을 만들어 제출하면 됩니다. 하지만 커뮤니티는 상황이 달랐습니다.
 
 - **커뮤니티 게시글:** 사용자가 글을 작성할 때마다 상세 페이지 URL이 동적으로 생성됩니다.
-- **카테고리:** 어드민에서 카테고리를 추가하거나 수정하면 관련 페이지 URL이 변경됩니다.
+- **카테고리:** 관리자가 카테고리를 추가하거나 수정하면 관련 페이지 URL이 변경됩니다.
 
 게시글이 수백 개라면 수동으로 관리할 수 있겠지만, 이미 수십만 개를 훌쩍 넘어섰고 앞으로도 계속 확장될 것이 분명했습니다. 삭제되거나 접근 불가능한 페이지는 제외하고, 새로 생성되는 페이지는 신속하게 추가해주는 **지속 가능한 자동화 시스템**이 필요했습니다.
 
@@ -59,7 +77,8 @@ summary: '오늘의집 커뮤니티의 SEO 개선을 위해 수백만 개의 동
 
 ## 첫 번째 시도: `next-sitemap` 라이브러리의 한계
 
-콘텐츠팀의 코드를 살펴보던 중 sitemap과 관련된 코드를 발견했습니다. 이미 `next-sitemap` 이란 라이브러리로 글로벌팀에서 시도한 흔적이 있었습니다. 처음에는 `next-sitemap` 라이브러리를 사용해 손쉽게 해결하고자 했습니다. 기존에 사용하던 커뮤니티 목록 조회 API를 호출하여 게시글 ID를 가져와 동적으로 사이트맵을 생성하는 방식이었습니다.
+코드를 살펴보던 중 sitemap과 관련된 코드를 발견했습니다. 이미 `next-sitemap` 이란 라이브러리로 다른 팀에서 시도한 흔적이 있었습니다.
+처음에는 `next-sitemap` 라이브러리를 사용해 손쉽게 해결하고자 했습니다. 기존 커뮤니티 목록 조회 API를 호출하여 게시글 ID를 가져와 동적으로 사이트맵을 생성하는 방식이었습니다.
 
 ```jsx
 // 초기 시도 방식
@@ -78,7 +97,7 @@ const sitemap = {
 
 하지만 이 방식은 곧 여러 한계에 부딪혔습니다.
 
-1. **데이터베이스 부하:** 기존 API는 페이징(Paging) 처리되어 있어 150만 개가 넘는 게시글 ID를 모두 가져오려면 수많은 API를 연속 호출해야 했습니다. 전체 ID를 한 번에 응답하는 API를 새로 개발하더라도, 데이터 규모가 커질수록 DB에 심각한 부하를 줄 것이 뻔했습니다.
+1. **데이터베이스 부하:** 기존 API는 페이징(Paging) 처리되어 있어 수백만 개가 넘는 게시글 ID를 모두 가져오려면 수많은 API를 연속 호출해야 했습니다. 전체 ID를 한 번에 응답하는 API를 새로 개발하더라도, 데이터 규모가 커질수록 DB에 심각한 부하를 줄 것이 분명했습니다.
 
 2. **구조적 한계:** 동적 사이트맵을 생성해주는 `getServerSideSitemap` 기능도 있었지만, `getServerSideProps`를 사용하는 페이지에서만 동작하여 다른 정적 사이트맵과 함께 관리하기에 응집도가 떨어졌습니다.
 
@@ -103,10 +122,10 @@ const sitemap = {
     width={800}
   />
 
-먼저 사이트맵 파일을 저장할 S3 버킷 구조를 설계했습니다. 확장성을 고려하여 `/content/sitemap/community/` 경로 아래에 커뮤니티 관련 사이트맵을 모두 모으고, 역할별로 폴더를 분리했습니다.
+먼저 사이트맵 파일을 저장할 S3 버킷 구조를 설계했습니다. 확장성을 고려하여 `/sitemap/community/` 경로 아래에 커뮤니티 관련 사이트맵을 모두 모으고, 역할별로 폴더를 분리했습니다.
 
 ```
-/content/sitemap
+/sitemap
  └── /community
      ├── /post
      │   ├── detail-1.community.sitemap.xml
@@ -125,7 +144,7 @@ const sitemap = {
 
 사이트맵에 포함할 동적 URL의 구조를 명확히 정의했습니다.
 
-- **커뮤니티 상세 페이지:** `https://contents.ohou.se/community/posts/{slug}`
+- **커뮤니티 상세 페이지:** `https://example.com/community/posts/{slug}`
     - `{slug}`는 SEO 친화적으로 게시글 제목과 ID를 조합하여 생성합니다.
 
 ```jsx
@@ -142,8 +161,8 @@ const createSlug = (id, title) => {
 ```
 
 - **카테고리 페이지:**
-    - 메인: `https://contents.ohou.se/community/{mainCategory}`
-    - 서브: `https://contents.ohou.se/community/{mainCategory}?subCategory={subCategory}`
+    - 메인: `https://example.com/community/{mainCategory}`
+    - 서브: `https://example.com/community/{mainCategory}?subCategory={subCategory}`
 
 ## 3. 사이트맵 XML 템플릿 설계 및 운영 전략 수립
 
@@ -201,16 +220,14 @@ on:
 
 jobs:
   generate-sitemap:
-    runs-on:
-      group: prod
-      labels: default-scale-set
+    runs-on: ubuntu-latest
     steps:
       # ... (Node.js, 의존성 설치 등)
       - name: Generate sitemap
         run: pnpm run tool:sitemap
         env:
-          AWS_S3_ACCESS_KEY_ID_PROD: ${{ secrets.AWS_S3_ACCESS_KEY_ID_PROD }}
-          AWS_S3_SECRET_ACCESS_KEY_PROD: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY_PROD }}
+          AWS_S3_ACCESS_KEY_ID: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
+          AWS_S3_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
 ```
 
 - **`on`**: 이 워크플로우가 **언제 실행될지** 결정합니다.
@@ -227,7 +244,7 @@ async function getCommunitySitemapFiles() { /* ... */ }
 function generateCommunitySitemapIndex(files) {
   const sitemapEntries = files.map(file => `
     <sitemap>
-      <loc>https://contents.ohou.se/${file.name}</loc>
+      <loc>https://example.com/${file.name}</loc>
       <lastmod>${file.lastModified}</lastmod>
     </sitemap>
   `).join('');
@@ -240,7 +257,7 @@ function generateCommunitySitemapIndex(files) {
 
 // 생성된 사이트맵 XML을 S3에 업로드
 async function uploadSitemapIndex(xmlContent) {
-  const key = `${S3_PATH_PREFIX}community.sitemap.xml`;
+  const key = `sitemap/community/community.sitemap.xml`;
   const command = new PutObjectCommand({
     Bucket: S3_BUCKET_NAME,
     Key: key,
@@ -254,7 +271,7 @@ async function uploadSitemapIndex(xmlContent) {
 
 ## 5. Next.js Rewrite 를 통한 파일 서빙
 
-마지막으로, 사용자가 `https://contents.ohou.se/community.sitemap.xml`과 같은 서비스 URL로 접근했을 때, 실제로는 S3에 저장된 파일을 제공하도록 Next.js의 `rewrites` 기능을 활용했습니다.
+마지막으로, 사용자가 `https://example.com/community.sitemap.xml`과 같은 서비스 URL로 접근했을 때, 실제로는 S3에 저장된 파일을 제공하도록 Next.js의 `rewrites` 기능을 활용했습니다.
 
 `rewrites`는 일종의 proxy 역할을 합니다. 사용자가 특정 주소(source)로 요청을 보내면, 주소창의 URL은 그대로 둔 채 내부적으로는 다른 주소(destination)에서 콘텐츠를 가져와 보여주는 기능입니다.
 
@@ -266,17 +283,17 @@ const rewrites = [
   // 1. 인덱스 사이트맵 연결
   {
     source: '/community.sitemap.xml',
-    destination: `${process.env.S3_HOST}/apne2/content/sitemap/community/community.sitemap.xml`,
+    destination: `${process.env.S3_HOST}/sitemap/community/community.sitemap.xml`,
   },
   // 2. 개별 상세 페이지 사이트맵 연결
   {
     source: '/:filename.community.sitemap.xml',
-    destination: `${process.env.S3_HOST}/apne2/content/sitemap/community/post/:filename.xml`,
+    destination: `${process.env.S3_HOST}/sitemap/community/post/:filename.xml`,
   },
   // 3. 카테고리 페이지 사이트맵 연결
   {
     source: '/category.community.sitemap.xml',
-    destination: `${process.env.S3_HOST}/apne2/content/sitemap/community/category/category.community.sitemap.xml`,
+    destination: `${process.env.S3_HOST}/sitemap/community/category/category.community.sitemap.xml`,
   },
 ];
 ```
@@ -313,7 +330,7 @@ GitHub Actions의 실행 결과를 통해 시스템 상태를 직접 모니터�
   Total files: 15
   Post files: 12
   Category files: 3
-  Upload URL: https://ohou-prs.s3.ap-northeast-2.amazonaws.com/...
+  Upload URL: https://s3.amazonaws.com/...
 ```
 
 **실패 시:**
@@ -341,7 +358,7 @@ GitHub Actions의 실행 결과를 통해 시스템 상태를 직접 모니터�
 
 이번 프로젝트를 통해 다음과 같이 안정적이고 확장 가능한 **시스템적 기반**을 마련했습니다.
 
-- **확장성:** 커뮤니티뿐 아니라, 다른 콘텐츠, 토픽 등 다른 도메인 영역에서도 충분히 구조만 맞추어 사용 가능합니다. 또한 20만 개가 넘는 페이지는 물론, 앞으로 수백만 개로 늘어나더라도 감당할 수 있는 구조입니다.
+- **확장성:** 커뮤니티뿐 아니라 다른 도메인 영역에서도 충분히 구조만 맞추어 사용 가능합니다. 20만 개가 넘는 페이지는 물론, 앞으로 수백만 개로 늘어나더라도 감당할 수 있는 구조입니다.
 - **안정성:** 사이트맵 생성 로직을 웹 서비스와 분리하여 서로 영향을 주지 않는 독립적인 운영이 가능해졌습니다.
 - **자동화:** 주기적인 갱신 작업을 완전히 자동화하여 운영 부담을 제거했습니다.
 - **모니터링:** GitHub Actions를 통한 실행 상태 추적과 로그 관리로 시스템의 신뢰성을 높였습니다.
@@ -355,15 +372,13 @@ GitHub Actions의 실행 결과를 통해 시스템 상태를 직접 모니터�
 
 이번 자동화 시스템 구축을 통해 커뮤니티의 의미 있는 페이지들을 담은 사이트맵을 주기적으로 제공함으로써, 검색 엔진이 우리의 방대한 콘텐츠를 더 빠르고 정확하게 색인할 수 있게 됩니다. 이는 결국 검색 결과에서의 **노출 증대**로 이어지고, 최종적으로는 커뮤니티로 유입되는 오가닉 트래픽의 성장을 가져올 것으로 기대합니다.
 
-또한, 이번 사이트맵 자동화는 단독적인 개선 작업으로 그치지 않습니다. 현재 SEO 개선 과제로 함께 진행하고 있는 **리치 스니펫 적용, 시맨틱 마크업 최적화**와 같은 다른 SEO 개선 과제들과 맞물려 **시너지 효과**를 낼 것으로 예상됩니다. 잘 구축된 사이트맵이 노출수를 증가시키는 역할을 하고, 시맨틱 마크업과 리치 스니펫 등 작업이 클릭율을 증가시키는 역할을 함으로써, 종합적인 관점에서 전체 SEO 유입량을 극대화하는 것이 최종 목표입니다.
+또한, 이번 사이트맵 자동화는 단독적인 개선 작업으로 그치지 않습니다. SEO 개선 과제로 함께 진행했던 **리치 스니펫 적용, 시맨틱 마크업 최적화**와 같은 다른 SEO 개선 과제들과 맞물려 **시너지 효과**를 낼 것으로 예상됩니다. 잘 구축된 사이트맵이 노출수를 증가시키는 역할을 하고, 시맨틱 마크업과 리치 스니펫 등 작업이 클릭율을 증가시키는 역할을 함으로써, 종합적인 관점에서 전체 SEO 유입량을 극대화하는 것이 최종 목표입니다.
 
 ## 마무리하며
 
 사실 SEO를 본격적으로 개선해 본 것도, GitHub Actions 워크플로우를 직접 작성해 본 것도 이번이 처음이었습니다. 익숙하지 않은 분야였기에 자료 조사에 많은 시간을 썼고, 처음에는 낯선 yml 문법 앞에서 뚝딱거리며 애를 먹기도 했습니다. S3 접근 권한을 얻기 위해 다른팀과 소통하며 키를 새로 발급받는 등 과정이 마냥 순탄하지만은 않았습니다.
 
 하지만 'SEO 개선'이라는 명확한 목표를 향해 오너십을 가지고 주도적으로 문제를 해결해 나가는 경험은 무엇보다 즐거웠습니다. 파일명 하나, 폴더 구조 하나까지도 확장성과 유지보수를 깊이 고민하는 과정 속에서 장기적으로 좋은 아키텍처를 설계하는 것의 중요성을 다시 한번 깨달을 수 있었습니다.
-
-아직 프로덕션 환경에 배포되기 전이라 실제 운영 중 모니터링을 해보지 못한 점은 아쉽지만, 곧 실제 환경에서의 성과를 확인할 수 있을 것으로 기대됩니다.
 
 SEO는 단기간에 결과가 나오는 작업은 아니지만, 꾸준히 물을 주어야 하는 나무와 같습니다. 이번에 구축한 탄탄한 기반 시스템이 검색 엔진이 저희 커뮤니티의 가치 있는 콘텐츠를 더 잘 발견하고 사용자에게 연결해 주는 좋은 자양분이 되기를 바랍니다. 앞으로 이 시스템이 커뮤니티 성장에 크게 기여하는 모습을 지켜보는 일은 무척 설레는 경험이 될 것 같습니다.
 

@@ -55,7 +55,7 @@ export default function RootLayout({
       )}
       suppressHydrationWarning
     >
-      <body className="antialiased max-w-4xl mx-auto px-4 py-8">
+      <body className="antialiased pt-16">
         <script dangerouslySetInnerHTML={{__html: `(${themeEffect.toString()})()`}}/>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-J9LSPGLFSZ"
@@ -69,8 +69,8 @@ export default function RootLayout({
             gtag('config', 'G-J9LSPGLFSZ');
           `}
         </Script>
-        <main className="flex-auto min-w-0 flex flex-col">
-          <Navbar />
+        <Navbar />
+        <main className="flex-auto min-w-0 flex flex-col max-w-2xl mx-auto px-4">
           {children}
           <Footer />
           <Analytics />
