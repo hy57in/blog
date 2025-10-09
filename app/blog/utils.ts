@@ -82,8 +82,14 @@ export function formatDate(date: string, includeRelative = false) {
     year: 'numeric',
   })
 
+  let shortDate = targetDate.toLocaleString('en-us', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+
   if (!includeRelative) {
-    return fullDate
+    return shortDate
   }
 
   return `${fullDate} (${formattedDate})`

@@ -45,7 +45,18 @@ function CustomLink(props: any) {
 }
 
 function RoundedImage(props: any) {
-  return <Image alt={props.alt} className="rounded-lg" {...props} />
+  // height가 없으면 width에 비례하여 자동 계산
+  const { width, height, ...restProps } = props
+  const finalHeight = height || Math.round(width * 0.6) // 기본 비율 5:3
+  
+  return <Image 
+    alt={props.alt} 
+    className="rounded-lg max-w-full h-auto" 
+    width={width}
+    height={finalHeight}
+    style={{ maxWidth: '100%', height: 'auto' }}
+    {...restProps} 
+  />
 }
 
 function Code({ children, ...props }: { children: string, [key: string]: any }) {
