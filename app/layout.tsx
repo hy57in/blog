@@ -8,6 +8,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import Footer from './components/footer'
 import { baseUrl } from './sitemap'
 import themeEffect from '../utils/themeEffect'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -56,6 +57,18 @@ export default function RootLayout({
     >
       <body className="antialiased max-w-4xl mx-auto px-4 py-8">
         <script dangerouslySetInnerHTML={{__html: `(${themeEffect.toString()})()`}}/>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-J9LSPGLFSZ"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-J9LSPGLFSZ');
+          `}
+        </Script>
         <main className="flex-auto min-w-0 flex flex-col">
           <Navbar />
           {children}
