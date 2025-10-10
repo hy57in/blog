@@ -1,7 +1,6 @@
 import { getBlogPosts } from 'app/blog/utils'
 
-// TODO: 실제 배포 URL로 변경하세요
-export const baseUrl = 'https://portfolio-blog-starter.vercel.app'
+export const baseUrl = 'https://hyojin.dev'
 
 export default async function sitemap() {
   let blogs = getBlogPosts().map((post) => ({
