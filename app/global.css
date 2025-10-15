@@ -140,9 +140,11 @@ body {
 }
 
 .prose code {
-  @apply px-1 py-0.5 rounded-lg;
+  @apply px-1.5 py-0.5 rounded;
   @apply bg-neutral-100 dark:bg-neutral-800;
   @apply text-text dark:text-text-dark;
+  @apply text-xs;
+  font-family: 'Geist Mono', monospace;
 }
 
 .prose pre code {
@@ -158,6 +160,21 @@ body {
 /* sugar-high 코드 하이라이팅 스타일 */
 .sugar-high {
   @apply text-text dark:text-text-dark;
+}
+
+/* 인라인 코드의 identifier만 primary 색상 적용 */
+.prose code:not(pre code) .sh__token--identifier {
+  color: var(--color-primary) !important;
+}
+
+.prose.dark code:not(pre code) .sh__token--identifier,
+html.dark .prose code:not(pre code) .sh__token--identifier {
+  color: var(--color-primary-dark) !important;
+}
+
+/* 코드 블록의 identifier는 기존 색상 유지 */
+.prose pre code .sh__token--identifier {
+  color: var(--sh-identifier) !important;
 }
 
 /* sugar-high 토큰 스타일 - 실제 클래스명 사용 */
@@ -233,7 +250,7 @@ body {
 }
 
 .prose strong {
-  @apply font-medium;
+  @apply font-semibold;
 }
 
 .prose ul {

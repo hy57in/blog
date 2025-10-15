@@ -17,7 +17,8 @@ function ArrowIcon() {
 
 export default function Footer() {
   return (
-    <footer className="mb-16">
+    <footer className="mb-10 flex">
+      <div className="max-w-2xl mx-auto px-4 w-full">
       <ul className="font-sm mt-8 flex flex-row gap-4 space-x-0 space-y-2 md:flex-row md:space-x-4 md:space-y-0">
         <li>
           <a
@@ -46,6 +47,7 @@ export default function Footer() {
       <p className="text-text-secondary dark:text-text-secondary-dark">
         © {new Date().getFullYear()} Hyojin Kim All rights reserved.
       </p>
+      </div>
     </footer>
   )
 }
