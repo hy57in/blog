@@ -4,7 +4,7 @@ export default function Page() {
   return (
     <section>
       <h1 className="mb-8 text-2xl font-semibold tracking-tighter">
-       환영합니다! 🤍
+       환영합니다! 🤍 😎 👩🏻‍💻
       </h1>
       <p className="mb-8">
         {`이곳은 프론트엔드 개발을 하며 마주한 문제들과 그 해결 과정, 그리고 배움을 기록하는 공간입니다. 가끔 개인적인 일상을 기록하는 일기장이 될 수도 있구요! 

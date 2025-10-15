@@ -67,7 +67,7 @@ export default function AboutPage() {
                   alt="CJ 올리브영"
                   width={24}
                   height={24}
-                  className="w-5 h-5 md:w-6 md:h-6 object-contain"
+                  className="w-6 h-6 md:w-7 md:h-7 object-cover rounded-md"
                 />
                 <h3 className="font-bold text-base md:text-lg text-text dark:text-text-dark">
                   <Link href="https://www.oliveyoung.co.kr/" className="hover:text-primary dark:hover:text-primary-dark transition-colors">
@@ -89,7 +89,7 @@ export default function AboutPage() {
                   alt="오늘의집"
                   width={24}
                   height={24}
-                  className="w-5 h-5 md:w-6 md:h-6 object-contain"
+                  className="w-6 h-6 md:w-7 md:h-7 object-cover rounded-md"
                 />
                 <h3 className="font-bold text-base md:text-lg text-text dark:text-text-dark">
                   <Link href="https://www.bucketplace.com/" className="hover:text-primary dark:hover:text-primary-dark transition-colors">
@@ -141,7 +141,7 @@ export default function AboutPage() {
                   alt="비마이프렌즈"
                   width={24}
                   height={24}
-                  className="w-5 h-5 md:w-6 md:h-6 object-contain"
+                  className="w-6 h-6 md:w-7 md:h-7 object-cover rounded-md"
                 />
                 <h3 className="font-bold text-base md:text-lg text-text dark:text-text-dark">
                   <Link href="https://bemyfriends.com/" className="hover:text-primary dark:hover:text-primary-dark transition-colors">
@@ -209,7 +209,7 @@ export default function AboutPage() {
                   alt="토스"
                   width={24}
                   height={24}
-                  className="w-5 h-5 md:w-6 md:h-6 object-contain"
+                  className="w-6 h-6 md:w-7 md:h-7 object-cover rounded-md"
                 />
                 <h3 className="font-bold text-base md:text-lg text-text dark:text-text-dark">
                   <Link href="https://toss.im/" className="hover:text-primary dark:hover:text-primary-dark transition-colors">
