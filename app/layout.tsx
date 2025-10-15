@@ -82,7 +82,7 @@ export default function RootLayout({
       )}
       suppressHydrationWarning
     >
-      <body className="antialiased pt-16">
+      <body className="antialiased pt-16 min-h-screen flex flex-col">
         <script dangerouslySetInnerHTML={{__html: `(${themeEffect.toString()})()`}}/>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-J9LSPGLFSZ"
@@ -97,12 +97,12 @@ export default function RootLayout({
           `}
         </Script>
         <Navbar />
-        <main className="flex-auto min-w-0 flex flex-col max-w-2xl mx-auto px-4">
+        <main className="flex-1 max-w-2xl mx-auto px-4 w-full">
           {children}
-          <Footer />
-          <Analytics />
-          <SpeedInsights />
         </main>
+        <Footer />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
