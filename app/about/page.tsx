@@ -149,7 +149,7 @@ export default function AboutPage() {
                   </Link>
                 </h3>
               </div>
-              <p className="text-sm md:text-[15px] italic text-text-secondary dark:text-text-secondary-dark mb-3 md:mb-4">Front-end Developer | 2022.09 - 2025.07 (2년 11개월)</p>
+              <p className="text-sm md:text-[15px] italic text-text-secondary dark:text-text-secondary-dark mb-3 md:mb-4">Front-end Developer | 2022.09 - 2025.07</p>
             </div>
 
             {/* 기술 스택 */}
@@ -217,7 +217,7 @@ export default function AboutPage() {
                   </Link>
                 </h3>
               </div>
-              <p className="text-sm md:text-[15px] italic text-text-secondary dark:text-text-secondary-dark mb-3 md:mb-4">Frontend UX Engineer (Assistant) | 2021.11 - 2022.08 (9개월)</p>
+              <p className="text-sm md:text-[15px] italic text-text-secondary dark:text-text-secondary-dark mb-3 md:mb-4">Frontend UX Engineer (Assistant) | 2021.11 - 2022.08</p>
             </div>
 
             {/* 기술 스택 */}
