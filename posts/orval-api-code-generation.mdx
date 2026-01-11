@@ -6,7 +6,7 @@ summary: 'Orval을 활용해 OpenAPI 스펙으로부터 TypeScript 타입, React
 
 ## 들어가며
 
-최근 사내 글로벌 신규 프로젝트가 새로운 인프라로 이관되면서, 수십 개의 API를 제로 베이스에서 연동해야 하는 상황을 맞이했습니다. API 하나당 Request/Response 타입을 정의하고, API 함수를 작성하고, React Query hook을 만들고, Zod 스키마까지... 
+최근 사내에서 맡고 있는  글로벌 신규 프로젝트(이하 글로벌원)가 새로운 인프라로 이관되면서, 수십 개의 API를 제로 베이스에서 연동해야 하는 상황을 맞이했습니다. API 하나당 Request/Response 타입을 정의하고, API 함수를 작성하고, React Query hook을 만들고, Zod 스키마까지... 
 
 "이거 자동화할 수 없을까?" 라고 생각했습니다.
 
@@ -291,11 +291,9 @@ export default defineConfig({
 
 **mode 옵션 상세 설명:**
 
-| 모드 | 설명 | 장점 | 단점 | 권장 상황 |
-| --- | --- | --- | --- | --- |
-| `single` | 모든 API를 하나의 파일에 | 간단 | 파일 크기 증가, Tree-shaking 불가 | 소규모 프로젝트 (API 10개 미만) |
-| `split` | endpoint별로 파일 분리 | Tree-shaking 가능 | 파일 수 증가 | 중규모 프로젝트 (API 10-50개) |
-| `tags-split` | OpenAPI tags별로 분리 | 도메인별 관리 용이, 최적 Tree-shaking | tags 설정 필요 | **대규모 프로젝트 (API 50개 이상, 권장)** |
+- **`single`**: 모든 API를 하나의 파일에 생성. 장점: 간단함. 단점: 파일 크기 증가, Tree-shaking 불가. 권장: 소규모 프로젝트 (API 10개 미만)
+- **`split`**: endpoint별로 파일 분리. 장점: Tree-shaking 가능. 단점: 파일 수 증가. 권장: 중규모 프로젝트 (API 10-50개)
+- **`tags-split`**: OpenAPI tags별로 분리. 장점: 도메인별 관리 용이, 최적 Tree-shaking. 단점: tags 설정 필요. 권장: **대규모 프로젝트 (API 50개 이상, 권장)**
 
 > 💡 **참고:** 더 자세한 설정 옵션은 공식 문서를 참고하세요
 > 
