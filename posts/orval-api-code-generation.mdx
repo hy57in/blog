@@ -1,0 +1,955 @@
+---
+title: 'Orval로 API 연동 시간 90% 단축하기'
+publishedAt: '2026-01-11'
+summary: 'Orval을 활용해 OpenAPI 스펙으로부터 TypeScript 타입, React Query hooks, Zod 스키마를 자동 생성하여 API 연동 시간을 90% 단축한 실전 경험을 공유합니다.'
+---
+
+## 들어가며
+
+최근 사내 글로벌 신규 프로젝트가 새로운 인프라로 이관되면서, 수십 개의 API를 제로 베이스에서 연동해야 하는 상황을 맞이했습니다. API 하나당 Request/Response 타입을 정의하고, API 함수를 작성하고, React Query hook을 만들고, Zod 스키마까지... 
+
+"이거 자동화할 수 없을까?" 라고 생각했습니다.
+
+그렇게 Orval을 알게되었고, **하루 만에 모든 API 연동을 끝낼 수 있었습니다.** 이 글에서는 Orval 도입 과정과 실제 겪은 문제들, 그리고 90% 시간을 절약할 수 있었던 방법을 공유합니다.
+
+**이 글은 이런 분들께 도움이 됩니다:**
+
+- OpenAPI 스펙으로부터 타입과 API 함수를 자동 생성하고 싶은 프론트엔드 개발자
+- React Query 기반 프로젝트에서 보일러플레이트를 줄이고 싶은 팀
+- 백엔드 API 스펙 변경에 빠르게 대응할 수 있는 구조를 찾는 개발자
+
+### 글로벌원 프로젝트의 기술 스택
+
+글로벌원 프로젝트는 타입 안정성과 개발자 경험을 위해 다음 기술 스택을 사용하고 있습니다:
+
+- **TypeScript** - 타입 안정성 확보
+- **TanStack Query** (이하 React Query) - 서버 상태 관리 라이브러리
+- **React Hook Form** - 폼 관리 라이브러리
+- **Zod** - 스키마 검증 및 런타임 validation 라이브러리
+
+이러한 기술 스택은 견고한 서비스를 만들어주지만, 동시에 **API 하나를 연동하기 위해 작성해야 할 보일러플레이트 코드의 양**도 상당했습니다.
+
+### 수동 작성 시 필요한 코드
+
+구체적으로 API를 연동하기 위해 어떤 코드들을 작성해야 하는지 예시를 들어 살펴보겠습니다.
+
+```tsx
+// 1. Request 타입 정의
+export type SearchStoresRequest = {
+  countryCode?: string;
+  status?: StoreStatus[];
+};
+
+// 2. Response 타입 정의
+export type StoreResponse = {
+  storeCode: string;
+  name: string;
+  address: AddressDto;
+  storeStatus: StoreStatus;
+  storeTypeCode: StoreTypeCode;
+  // ... 수십 개의 필드 직접 타이핑
+};
+
+// 3. React Query의 queryKey 정의
+export const searchStoresQueryKey = (request: SearchStoresRequest) => {
+  return ['store', request];
+};
+
+// 4. queryOptions 정의
+export const searchStoresQueryOptions = (request: SearchStoresRequest) => {
+  return {
+    queryKey: searchStoresQueryKey(request),
+    queryFn: () => searchStores(request),
+  };
+};
+
+// 5. 실제 API 호출 함수 작성
+export const searchStores = async (request: SearchStoresRequest): Promise<StoreResponse[]> => {
+  return ApiClient.get<StoreResponse[]>(`/api/v1/stores/search`);
+};
+
+// 6. React Query Custom Hook 작성
+export const useSearchStores = (request: SearchStoresRequest) => {
+  return useQuery(searchStoresQueryOptions(request));
+};
+
+// 7. (필요 시) Mutation Hook 추가
+export const useCreateStore = () => {
+  return useMutation({
+    mutationFn: (data: StoreCreateRequest) => createStore(data),
+  });
+};
+
+// 8. (필요 시) Zod 스키마 작성 (Form Validation용)
+export const storeCreateRequestSchema = z.object({
+  name: z.string().min(0).max(30),
+  corporationCode: z.string().min(0).max(20),
+  address: z.object({ /* ... */ }),
+  storeTypeCode: z.enum(['D', 'B', 'E', 'O', 'L', 'T']),
+  // ... 또 다시 반복되는 필드 정의
+});
+
+```
+
+초반에 매장 스쿼드에서 매장 등록, 조회, 수정 API를 연동할 때는 일일이 타이핑했습니다. 하지만 국가, 법인 등 연동해야 할 API가 늘어나면서 작성해야 하는 코드의 양이 기하급수적으로 증가했습니다.
+저는 매장 스쿼드뿐 아니라 정산 스쿼드도 담당하고 있었기 때문에, 두 스쿼드를 합치면 초기 구축 단계에서 작성해야 할 코드량이 상당했습니다.
+
+### 수동 작성의 문제점
+
+이렇게 API 연동에 필요한 코드의 양이 늘어나는 것도 문제지만, 수동으로 작성하는 방식에는 더 근본적인 문제들이 있었습니다.
+
+**첫째, 휴먼 에러가 발생하기 쉽습니다.**
+
+Swagger를 보며 직접 타이핑하다 보면 `storeTypeCode`를 `storeTypeCd`로 잘못 입력하는 등의 오타가 종종 발생합니다. 이런 오타는 컴파일 단계에서는 잡히지 않고, 런타임에서야 발견되는 경우가 많습니다.
+
+**둘째, 백엔드 API 스펙 변경 시 동기화가 누락될 수 있습니다.**
+
+프론트엔드 코드를 제때 수정하지 않으면 런타임 에러로 이어지고, 최악의 경우 서비스가 예기치 않게 중단될 수 있습니다.
+
+**셋째, 생산성이 크게 저하됩니다.**
+
+비즈니스 로직을 고민해야 할 시간에 기계적인 보일러플레이트 코드를 반복 작성하는 것은 개발 효율을 떨어뜨립니다.
+
+이러한 문제를 해결하기 위해 코드 생성 도구 도입을 검토했고, 그중에서도 OpenAPI 스펙으로부터 TypeScript 코드를 자동 생성해주는 **Orval**을 선택했습니다.
+
+## Orval이란?
+
+Orval은 OpenAPI 스펙(Swagger)을 읽어 TypeScript 타입, React Query Hooks, Zod 스키마 등을 자동으로 생성해주는 코드 생성 도구입니다.
+
+TMI) 벨기에의 유명한 맥주 이름 Orval (오르발, 오발?) 이라고 합니다
+
+> 💡 **참고:** https://orval.dev/
+> 
+
+### Orval이 생성해주는 것들
+
+`pnpm generate:api`
+
+터미널에서 스크립트를 실행하면 다음과 같은 코드들이 자동으로 생성됩니다.
+
+<Image 
+  src="/images/orval/orval1.png" 
+  alt="orval-api-code-generation-1"
+  width={800}
+/>
+
+<Image 
+  src="/images/orval/orval2.png" 
+  alt="orval-api-code-generation-2"
+  width={800}
+/>
+<br />
+
+- Request/Response TypeScript 타입
+- Axios API 호출 함수
+- React Query hooks (`useQuery`, `useMutation`, `useSuspenseQuery`)
+- `queryKey`와 `queryOptions` 함수
+- Zod 스키마 (런타임 validation용)
+
+<br />
+
+<Image 
+  src="/images/orval/orval3.png" 
+  alt="orval-api-code-generation-3"
+  width={500}
+/>
+
+### 왜 Orval을 선택했나?
+
+OpenAPI 기반 코드 생성 도구는 여러 가지가 있지만, 각각 특징이 다릅니다.
+
+- **[swagger-typescript-api](https://github.com/acacode/swagger-typescript-api)**: React Query 지원 없음, TypeScript 품질 우수함, 커스터마이징 보통, GitHub Stars 4k, 최근 업데이트 2025.10.22 (v13.2.16)
+- **[openapi-typescript](https://github.com/openapi-ts/openapi-typescript)**: React Query 지원 없음, TypeScript 품질 우수함, 커스터마이징 쉬움, GitHub Stars 7.8k, 최근 업데이트 2025.08 (openapi-typescript@7.10.1)
+- **[Orval](https://github.com/orval-labs/orval)**: **React Query 지원**, TypeScript 품질 우수함, 커스터마이징 쉬움, GitHub Stars 5.1k, 최근 업데이트 2025.12 ([v7.17.2](https://github.com/orval-labs/orval/tree/v7.17.2))
+
+> 출처: GitHub (2026년 1월 기준)
+> 
+
+글로벌원 프로젝트는 TanStack Query와 Zod를 핵심 기술 스택으로 사용하고 있었습니다. Orval은 다음과 같은 이유로 가장 적합하다고 판단했습니다:
+
+1. **React Query hooks를 바로 생성**해주어 별도 hook 작성 불필요
+2. **queryKey와 queryOptions 설계 고민 없이** 자동 생성
+3. **Zod 스키마까지 생성**하여 폼 검증에 바로 사용 가능
+4. **설정이 간단**하고 커스터마이징이 쉬움
+
+## POC: 정말 효과가 있을까?
+
+우선 특정 스쿼드에서 도입한 후 전파하기 위해, 실제로 효과가 있을지 검증이 필요했습니다. 다음과 같은 가설을 세우고 POC를 진행했습니다.
+
+### 가설 1: 개발 시간이 단축될 것이다
+
+API 1개당 수동으로 작성하던 시간(타입 정의, API 함수, React Query hooks 등)을 코드 생성으로 대체하면, 실제 비즈니스 로직 구현에 더 많은 시간을 투자할 수 있을 것입니다.
+
+### 가설 2: 타입 안정성이 향상될 것이다
+
+수동 작성 시 발생하던 오타나 타입 불일치 문제가 사라지고, OpenAPI 스펙과 프론트엔드 코드 간의 타입이 항상 동기화될 것입니다.
+
+### 가설 3: 백엔드 API 스펙 변경에 빠르게 대응할 수 있을 것이다
+
+API 스펙이 변경되었을 때 재생성 명령어 한 줄로 모든 코드를 업데이트할 수 있어, 수동으로 일일이 수정하는 것보다 빠르고 정확할 것입니다.
+
+### 가설 4: 생성된 코드 품질이 우리 코드 컨벤션과 맞을 것이다
+
+Orval이 생성하는 코드가 우리 프로젝트의 코딩 스타일, 네이밍 규칙, 아키텍처 패턴과 충돌하지 않고 그대로 사용 가능할 것입니다.
+
+### 그리고 가장 중요한 질문들
+
+- 백엔드 팀이 OpenAPI 스펙을 충분히 상세하게 작성해줄까?
+- 백엔드 스키마에 100% 의존하는 구조가 되지 않을까?
+- 만약 커스터마이징이 필요하다면, 중간 레이어를 만드는 것이 오히려 유지보수 비용을 높이지 않을까?
+
+이러한 가설들을 검증하기 위해 매장, 정산 스쿼드의 API로 POC를 진행했습니다.
+
+## 적용 과정
+
+> 💡 **사전 준비 체크리스트**
+> 
+> Orval 도입 전 다음 사항들을 확인하세요:
+> 
+> - 백엔드 OpenAPI 스펙 버전 확인 (3.0 이상 권장)
+> - 백엔드 팀과 스펙 업데이트 주기 협의
+> - 프로젝트 TypeScript 설정 확인 (strict mode 권장)
+> - TanStack Query 버전 확인 (queryOptions, mutationOptions 사용하려면 v5.7.x 이상 권장)
+> - 팀원 간 코드 생성 전략 합의
+
+### 기술 환경
+
+이 글은 다음 환경을 기준으로 작성되었습니다:
+
+- Orval v6.31.0
+- @tanstack/react-query v5.x
+- TypeScript v5.6.x
+- Zod v4.x
+
+### Step 1. 설치
+
+```bash
+pnpm add -D orval
+```
+
+### Step 2. orval.config.ts 작성
+
+가장 중요한 설정 파일입니다. 스쿼드별(도메인별)로 설정을 분리하여 관리하도록 구성했습니다.
+
+```tsx
+// apps/admin/orval.config.ts
+import { defineConfig } from 'orval';
+
+// 1. 스쿼드별 API 스펙 URL 정의
+const API_SPECS = {
+  retail: 'http://internal-retail-api-dev.../v3/api-docs',
+  settlement: 'http://internal-settlement-api-dev.../v3/api-docs',
+} as const;
+
+// 2. 공통 설정 팩토리 함수
+const createApiConfig = (name: keyof typeof API_SPECS) => ({
+  input: {
+    target: API_SPECS[name],
+    override: {
+      // 특정 API 제외 등 전처리 로직 (여기서 커스텀하게 설정 가능)
+      transformer: excludeImageUploadTransformer, 
+    },
+  },
+  output: {
+    target: `./src/api/${name}/generated.ts`,  // 생성될 파일 경로
+    client: 'react-query' as const, // ⭐ React Query Hooks 생성
+    mode: 'tags-split' as const, // ⭐ 태그별로 파일/폴더 분리 (트리셰이킹에 용이)
+    override: {
+		  // Custom Axios Instance 연결
+      mutator: {
+        path: `../../libs/api/client/mutators/${name}.ts`,
+        name: `${name}Instance`,
+      },
+      query: {
+        useQuery: true,           // GET용 useQuery hook
+        useMutation: true,        // POST/PUT/DELETE용 useMutation hook
+        useSuspenseQuery: true,   // React 18 Suspense용 hook
+        // useInfinite: true,     // 무한 스크롤용 (필요하면 활성화)
+      },
+    },
+  },
+  hooks: {
+    afterAllFilesWrite: 'prettier --write', // 생성 후 포맷팅
+  },
+});
+
+export default defineConfig({
+  // Retail API (매장 스쿼드)
+  retail: createApiConfig('retail'),
+  retailZod: createZodConfig('retail'), // Zod 설정도 별도로 가능
+
+  // Settlement API (정산 스쿼드)
+  settlement: createApiConfig('settlement'),
+  settlementZod: createZodConfig('settlement'), 
+
+  // 다른 스쿼드 추가할 때:
+  // promotion: createApiConfig('promotion'),
+  // promotionZod: createZodConfig('promotion'),
+});
+
+```
+
+**mode 옵션 상세 설명:**
+
+| 모드 | 설명 | 장점 | 단점 | 권장 상황 |
+| --- | --- | --- | --- | --- |
+| `single` | 모든 API를 하나의 파일에 | 간단 | 파일 크기 증가, Tree-shaking 불가 | 소규모 프로젝트 (API 10개 미만) |
+| `split` | endpoint별로 파일 분리 | Tree-shaking 가능 | 파일 수 증가 | 중규모 프로젝트 (API 10-50개) |
+| `tags-split` | OpenAPI tags별로 분리 | 도메인별 관리 용이, 최적 Tree-shaking | tags 설정 필요 | **대규모 프로젝트 (API 50개 이상, 권장)** |
+
+> 💡 **참고:** 더 자세한 설정 옵션은 공식 문서를 참고하세요
+> 
+> - [Input 설정](https://orval.dev/reference/configuration/input)
+> - [Output 설정](https://orval.dev/reference/configuration/output)
+> - [Override 옵션](https://orval.dev/reference/configuration/output#override)
+
+### Step 3. Mutator 작성
+
+**Mutator란?**
+
+Orval이 생성하는 API 호출 함수를 우리 프로젝트의 커스텀 Axios 인스턴스와 연결해주는 함수입니다. 이를 통해 인증 토큰 추가, 에러 핸들링, 로깅 등 프로젝트 전체에 공통으로 적용되는 로직을 생성된 코드에도 자동으로 적용할 수 있습니다.
+
+**왜 필요한가요?**
+
+- 생성된 코드가 단순 Axios가 아닌 우리 프로젝트의 커스텀 설정을 사용하도록
+- 인증, 에러 처리 등을 매번 수동으로 추가하지 않아도 되도록
+
+```tsx
+// libs/api/client/mutators/retail.ts
+import Axios, { type AxiosRequestConfig } from 'axios';
+
+// 1. 커스텀 Axios 인스턴스 생성 (인터셉터, 베이스 URL 설정)
+export const axiosInstance = setupInterceptors(
+  Axios.create({
+    baseURL: RETAIL_BASE_URL,
+    paramsSerializer: (params) => buildQueryParams(params),
+  }),
+);
+
+// 2. Orval이 사용할 실제 호출 함수 (Mutator)
+export const retailInstance = <T>(config: AxiosRequestConfig): Promise<T> => {
+  const source = Axios.CancelToken.source();
+  
+  const promise = axiosInstance({
+    ...config,
+    cancelToken: source.token,
+  }).then(({ data }) => data);
+
+  // React Query의 Query Cancellation 지원을 위한 처리
+  // @ts-expect-error
+  promise.cancel = () => source.cancel('Query was cancelled');
+
+  return promise;
+};
+```
+
+> 💡 **참고:** [Mutator 공식 문서](https://orval.dev/reference/configuration/output#mutator)
+> 
+
+### Step 4. package.json 스크립트 설정
+
+-p 플래그를 사용하여 도메인별 api를 생성할 수 있도록 스크립트를 추가합니다
+
+```json
+{
+  "scripts": {
+    "generate:api": "orval",
+    "generate:api:watch": "orval --watch",
+    "generate:api:settlement": "orval -p settlement && orval -p settlementZod",
+    "generate:api:retail": "orval -p retail && orval -p retailZod"
+  }
+}
+```
+
+`-p` 옵션은 `orval.config.ts`의 키 이름을 지정합니다. `retail`을 지정하면 config의 `retail` 설정만 실행됩니다.
+
+### ⚠️ 코드 재생성 시 주의사항
+
+Orval로 생성된 코드를 직접 수정하면 안 되는 이유:
+
+**1. 재생성 시 덮어씌워짐**
+
+```bash
+# API 스펙이 업데이트되어 재생성하면
+pnpm generate:api
+# → 모든 수정사항이 사라집니다!
+```
+
+**2. 올바른 확장 방법**
+
+- ✅ Wrapper Hook 생성
+- ✅ select 옵션 활용
+- ✅ Transformer로 생성 전 수정
+- ❌ 생성된 파일 직접 편집
+
+## **결과: 무엇이 달라졌나?**
+
+### Before: 수동 작성
+
+```tsx
+// API 하나를 연동하려면...
+// 1. types.ts - Request/Response 타입 수동 정의
+// 2. getStoreList.ts - API 함수 수동 작성
+// 3. useStoreList.ts - React Query hook 수동 작성
+// 4. storeList.schema.ts - Zod 스키마 수동 작성
+// 5. queryKeys.ts - queryKey 수동 정의
+// 6. qurtyOptions.ts - queryOption 수동 정의
+
+// API 하나당 6개 파일, 약 150줄의 코드 작성
+// 그리고 API 스펙이 바뀔 때마다 모두 수정해야 함
+```
+
+### **After: Orval 자동 생성**
+
+이제 `pnpm generate:api:retail` 명령어 한 번이면 아래 코드들이 자동으로 생성됩니다.
+
+### **1. TypeScript 타입 (generated.schemas.ts)**
+
+JSDoc이 포함되고, enum 대신 `as const`로 생성되어 트리셰이킹에도 유리합니다.
+
+```tsx
+/**
+ * Generated by orval v6.31.0 🍺
+ * Do not edit manually.
+ * 글로벌 매장관리 - Retail API
+ * Retail API 명세서
+ * OpenAPI spec version: 3.0.1
+ */
+export type StoreStatus = 'PENDING' | 'OPERATING' | 'CLOSED';
+
+export interface StoreResponse {
+  storeCode: string;
+  name: string;
+  status: StoreStatus;
+  // ... 백엔드 DTO와 100% 일치
+}
+```
+
+### 2. API 함수 & React Query Hooks
+
+가장 큰 장점입니다. API 함수, queryKey, queryOptions, hooks이 모두 생성됩니다
+
+```tsx
+/**
+ * 매장 코드로 매장 정보를 조회합니다
+ * @summary 매장 코드 기반 조회
+ */
+export const getStoreByCode = (storeCode: string, signal?: AbortSignal) => {
+  return retailInstance<ApplicationResponseDtoStoreResponse>({
+    url: `/api/v1/stores/${storeCode}`,
+    method: 'GET',
+    signal,
+  });
+};
+
+export const getGetStoreByCodeQueryKey = (storeCode: string) => {
+  return [`/api/v1/stores/${storeCode}`] as const;
+};
+
+export const getGetStoreByCodeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStoreByCode>>,
+  TError = StoreErrorCode,
+>(
+  storeCode: string,
+  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getStoreByCode>>, TError, TData> },
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetStoreByCodeQueryKey(storeCode);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getStoreByCode>>> = ({ signal }) =>
+    getStoreByCode(storeCode, signal);
+
+  return { queryKey, queryFn, enabled: !!storeCode, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStoreByCode>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetStoreByCodeQueryResult = NonNullable<Awaited<ReturnType<typeof getStoreByCode>>>;
+export type GetStoreByCodeQueryError = StoreErrorCode;
+
+```
+
+### Query Key 작성 규칙
+
+Orval이 생성하는 queryKey는 다음 규칙을 따릅니다:
+
+```tsx
+// 기본 패턴: [endpoint URL, parameters]
+[`/api/v1/stores/search`, params]
+
+// Path parameter가 있는 경우: [URL with param]
+[`/api/v1/stores/${storeCode}`]
+
+// 장점:
+// 1. URL 기반이라 직관적
+// 2. params 변경 시 자동으로 다른 캐시로 관리
+// 3. 캐시 무효화할 때 URL prefix로 매칭 가능
+
+// 예: 특정 endpoint의 모든 캐시 무효화
+queryClient.invalidateQueries({
+  queryKey: ['/api/v1/stores/search']
+})
+
+// 예: 모든 매장 관련 캐시 무효화
+queryClient.invalidateQueries({
+  predicate: (query) => query.queryKey[0]?.toString().includes('/stores')
+})
+```
+
+### 3. Zod 스키마 (schemas.zod.ts)
+
+Form validation에 바로 사용할 수 있는 Zod 스키마도 생성됩니다. `@minLength`, `@maxLength`가 자동으로 `.min()`, `.max()`로 변환됩니다.
+
+```tsx
+import { z as zod } from 'zod';
+
+/**
+ * 매장 등록 Request Body validation
+ */
+export const createStoreBodyNameMin = 0;
+export const createStoreBodyNameMax = 30;
+export const createStoreBodyCorporationCodeMin = 0;
+export const createStoreBodyCorporationCodeMax = 20;
+
+export const createStoreBody = zod.object({
+  name: zod.string()
+    .min(createStoreBodyNameMin)
+    .max(createStoreBodyNameMax),
+  corporationCode: zod.string()
+    .min(createStoreBodyCorporationCodeMin)
+    .max(createStoreBodyCorporationCodeMax),
+  address: zod.object({
+    countryCode: zod.string().min(1),
+    address1: zod.string().min(0).max(30),
+    address2: zod.string().min(0).max(30),
+    cityCode: zod.string().min(0).max(5),
+    stateCode: zod.string().min(0).max(4),
+    zipCode: zod.string().min(0).max(10),
+  }),
+  storePhoneNumber: zod.object({
+    callingCode: zod.string().min(0).max(5),
+    phoneNumber: zod.string().min(0).max(15),
+  }),
+  storeTypeCode: zod.enum(['D', 'B', 'E', 'O', 'L', 'T']),
+  storeSizeCode: zod.enum([
+    'EXTRA_LARGE', 'LARGE', 'MEDIUM', 'SMALL', 'EXTRA_SMALL'
+  ]),
+  // ...
+});
+```
+
+**Zod 스키마와 React Hook Form 연결**
+
+생성된 Zod 스키마는 React Hook Form과 바로 연결할 수 있습니다:
+
+```tsx
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createStoreBody } from '@/api/retail/schemas.zod';
+
+const StoreCreateForm = () => {
+  const form = useForm({
+    resolver: zodResolver(createStoreBody),
+  });
+  
+  // form의 타입이 자동으로 추론됩니다!
+  return (
+    <form onSubmit={form.handleSubmit(onSubmit)}>
+      {/* ... */}
+    </form>
+  );
+};
+```
+
+**실제 사용 예시**
+
+```tsx
+import {
+  useSearchStores,
+  useCreateStore,
+  useUpdateStore,
+  getSearchStoresQueryKey,
+  type SearchStoresParams,
+  type StoreResponse,
+  type StoreCreateRequest,
+} from '@/api/retail/store';
+
+const StoreList = () => {
+  const { data, isLoading } = useSearchStores({
+    request: {
+      pageNumber: 0,
+      pageSize: 20,
+      status: ['OPERATING'],
+    },
+  });
+
+  // data의 타입이 자동으로 추론됩니다!
+  return (
+    <div>
+      {data?.data?.map(store => (
+        <div key={store.storeCode}>{store.name}</div>
+      ))}
+    </div>
+  );
+};
+```
+
+## POC 결과: 가설 검증
+
+**✅ 가설 1: 개발 시간 단축**
+
+**실측 데이터:**
+
+| 작업 | 수동 작성 (As-Is) | Orval 사용 (To-Be) | 절감률 |
+| --- | --- | --- | --- |
+| API 10개 초기 연동 | 2시간 | 5분 | **96%** ↓ |
+| API 스펙 변경 대응 | 30분 (파일 3-5개 수정) | 1분 (재생성 1회) | **97%** ↓ |
+| 신규 팀원 온보딩 | 2-3일 (API 구조 파악) | 반나절 (생성 코드 확인) | **75%** ↓ |
+
+**결과:**
+
+- ✅ API 연동 작업 시간 **90% 이상 단축**
+- ✅ 정산 스쿼드 실제 사례: 1주일 예상 작업을 **하루 만에 완료**
+
+> "타입 치는 시간에 비즈니스 로직에 집중할 수 있어서 좋았어요. 특히 API가 자주 바뀌는 초기 단계에서 재생성 한 번으로 동기화되는 게 정말 편했습니다.”
+> 
+
+**✅ 가설 2: 타입 안정성 향상**
+
+- `storeTypeCode`를 `storeTypeCd`로 잘못 쓰는 등의 오타 완전 제거
+- OpenAPI 스펙과 프론트엔드 타입이 항상 일치
+- 컴파일 타임에 타입 불일치 에러 감지
+
+**✅ 가설 3: API 스펙 변경에 빠른 대응**
+
+백엔드에서 필드를 추가하거나 수정했을 때, `pnpm generate:api` 한 번 실행 후 TypeScript 컴파일러가 변경된 부분을 알려줍니다. 해당 부분만 수정하면 동기화 완료!
+
+**✅ 가설 4: 생성된 코드 품질**
+
+`mode: 'tags-split'` 설정으로 태그별로 파일이 분리되어 tree-shaking이 잘 작동했고, 생성된 코드가 우리 프로젝트의 컨벤션과 잘 맞았습니다.
+
+## 트러블슈팅 경험 공유
+
+### 이슈 1: 특정 API에서 코드 생성 실패
+
+**발생 상황:** POC를 진행하던 중 `imageUpload` API에서 코드 생성이 실패하는 문제가 있었습니다.
+
+**원인:** path parameter가 OpenAPI 스펙에 정의되지 않아 Orval이 타입을 생성할 수 없었습니다.
+
+**해결: Transformer로 문제 API 필터링**
+
+백엔드 팀에 스펙 수정을 요청했지만, 당장 급한 작업이 있어 우선 프론트엔드에서 임시로 해당 API만 제외하고 코드를 생성하기로 했습니다.
+
+```tsx
+const excludeImageUploadTransformer = (spec: any): any => {
+  const modifiedSpec = JSON.parse(JSON.stringify(spec));
+
+  const paths = modifiedSpec.paths;
+  if (paths) {
+    Object.keys(paths).forEach(path => {
+      const pathItem = paths[path];
+      Object.keys(pathItem).forEach(method => {
+        if (['get', 'post', 'put', 'delete', 'patch'].includes(method)) {
+          const operation = pathItem[method];
+          // 문제 있는 operation 제거
+          if (operation?.operationId === 'imageUpload') {
+            delete pathItem[method];
+          }
+        }
+      });
+    });
+  }
+
+  return modifiedSpec;
+};
+
+```
+
+이미지 업로드 API는 별도로 수동 작성하여 사용하고, 나머지 API들은 Orval로 자동 생성하는 방식으로 진행했습니다. 나중에 백엔드 스펙이 수정되면 transformer를 제거할 예정입니다.
+
+> 💡 **참고:** [Transformer 공식 문서](https://orval.dev/reference/configuration/input#transformer)
+> 
+
+### 이슈 2: 백엔드 스펙과 프론트엔드 요구사항의 차이
+
+실제 프로젝트를 진행하다 보면 백엔드 스펙과 프론트엔드 요구사항이 다른 경우가 종종 발생합니다.
+
+**상황 1: 필수값 정의와 실제 응답의 불일치**
+
+백엔드 DTO에는 모든 필드가 필수값으로 정의되어 있었는데, 실제로는 특정 상황에서 `null`이 올 수 있는 케이스가 있었습니다. 이로 인해 런타임 에러가 발생했습니다.
+
+**해결 방법 1: Zod Runtime Validation 활용**
+
+TypeScript 타입만으로는 런타임 데이터를 검증할 수 없기 때문에, Zod 스키마도 함께 생성하여 실제 응답 데이터를 검증하도록 했습니다.
+
+```tsx
+import { storeResponseSchema } from '@/api/retail/schemas.zod';
+
+const { data } = useGetStore(storeCode, {
+  query: {
+    select: (response) => {
+      // 런타임에 데이터 검증
+      const validated = storeResponseSchema.parse(response);
+      return validated;
+    },
+  },
+});
+
+```
+
+백엔드 응답이 스펙과 다르게 오면 Zod에서 에러를 발생시켜, UI가 예기치 않게 깨지는 것을 방지할 수 있었습니다.
+
+**해결 방법 2: Transformer로 스펙 전처리**
+
+OpenAPI 스펙 수정이 일정상 어려운 경우, 프론트엔드에서 임시로 스펙을 수정하여 코드를 생성할 수 있습니다.
+
+```tsx
+// orval.config.ts
+const adjustRequiredFields = (schema: any) => {
+  // 예: 특정 필드를 optional로 변경
+  if (schema.paths['/api/v1/stores/{storeCode}']) {
+    const responseSchema = schema.paths['/api/v1/stores/{storeCode}']
+      .get.responses['200'].content['application/json'].schema;
+
+    // required 배열에서 특정 필드 제거
+    responseSchema.required = responseSchema.required.filter(
+      (field: string) => field !== 'closingDate'
+    );
+  }
+  return schema;
+};
+
+```
+
+이 방식은 임시 조치로만 사용하고, 백엔드 스펙이 업데이트되면 transformer를 제거하는 것이 좋습니다.
+
+**상황 2: 백엔드와 프론트엔드의 타입 차이**
+
+백엔드에서는 `string`으로 보내주지만, 프론트엔드에서는 더 구체적인 타입으로 사용하고 싶은 경우가 있습니다.
+
+예를 들어, 백엔드에서 매장 상태를 다음과 같이 정의했다면:
+
+```tsx
+// 백엔드 OpenAPI 스펙 & Orval 생성 타입
+export interface StoreResponse {
+  storeCode: string;
+  name: string;
+  status: string;  // 백엔드에서는 그냥 string
+  registeredDateTime: string;  // ISO 8601 문자열
+}
+```
+
+프론트엔드에서는 이렇게 사용하고 싶을 수 있습니다:
+
+```tsx
+// 프론트엔드에서 원하는 타입
+type StoreStatus = 'PENDING' | 'OPERATING' | 'CLOSED';
+type StoreDomainModel = {
+  id: string;
+  displayName: string;
+  status: StoreStatus;  // 구체적인 union type
+  registeredAt: Date;   // Date 객체
+};
+```
+
+**해결: React Query의 `select` 옵션 활용**
+
+Wrapper Hook을 만들지 않고도 `select` 옵션으로 데이터 변환과 타입 추론을 동시에 해결할 수 있습니다.
+
+```tsx
+import { useSearchStores } from '@/api/retail/generated';
+
+// 1. 프론트엔드 전용 타입 정의
+type StoreStatus = 'PENDING' | 'OPERATING' | 'CLOSED';
+
+type StoreDomainModel = {
+  id: string;
+  displayName: string;
+  status: StoreStatus;
+  registeredAt: Date;
+};
+
+export const StoreList = () => {
+  // 2. select로 데이터 변환
+  const { data } = useSearchStores(
+    { pageNumber: 0, pageSize: 10 },
+    {
+      query: {
+        select: (response) => {
+          return response.map((store) => ({
+            id: store.storeCode,
+            displayName: `${store.name} (${store.storeTypeCode})`,
+            status: store.status as StoreStatus,  // string -> union type
+            registeredAt: new Date(store.registeredDateTime),  // string -> Date
+          }));
+        },
+      },
+    }
+  );
+
+  // ✨ data의 타입은 StoreDomainModel[]로 자동 추론됩니다!
+  
+  return (
+    <ul>
+      {data?.map((store) => (
+        <li key={store.id}>
+          {store.displayName}
+          {store.status === 'OPERATING' && ' 🟢'}  {/* 타입 안전 */}
+          {store.registeredAt.toLocaleDateString()}  {/* Date 메서드 사용 가능 */}
+        </li>
+      ))}
+    </ul>
+  );
+};
+```
+
+**이 방식의 장점**
+
+1. 별도의 Wrapper Hook 없이도 데이터 변환 가능
+2. TypeScript가 변환된 타입을 자동으로 추론
+3. React Query의 메모이제이션으로 불필요한 재계산 방지
+4. 백엔드 타입은 그대로 두고 프론트엔드에서만 구체화
+
+### 이슈 3: 복잡한 비즈니스 로직이 필요한 경우
+
+생성된 코드는 재생성 시 덮어씌워지므로 직접 수정하면 안 됩니다. 필터링, 정렬, 가공 등 복잡한 비즈니스 로직이 필요한 경우에는 Wrapper Hook을 만들어 사용합니다.
+
+**해결: Wrapper Hook 생성**
+
+```tsx
+// hooks/useStores.ts
+import { useSearchStores } from '@/api/retail/store';
+
+export const useStores = (filters: FilterState) => {
+  // 필터 상태를 API 파라미터로 변환
+  const params = transformFiltersToParams(filters);
+
+  const query = useSearchStores({ request: params }, {
+    query: {
+      staleTime: 5 * 60 * 1000,
+      select: (data) => data.data ?? [],
+    },
+  });
+
+  return {
+    ...query,
+    totalCount: query.data?.paginationResponse?.totalCount ?? 0,
+  };
+};
+
+```
+
+이렇게 Wrapper Hook으로 감싸면:
+
+- 생성된 코드는 수정하지 않으면서
+- 프로젝트에 필요한 비즈니스 로직을 추가할 수 있고
+- 재생성해도 커스텀 로직이 유지됩니다
+
+### 이슈 4: 백엔드 스펙 의존성에 대한 우려
+
+초기에는 "백엔드 스펙에 100% 의존하는 구조가 되는 것은 아닐까?"라는 우려가 있었습니다. 하지만 실제로 사용해보니 이는 오히려 장점으로 작용했습니다.
+
+**긍정적으로 작용한 이유:**
+
+**1. 명확한 계약**
+
+OpenAPI 스펙이 프론트엔드와 백엔드 간의 명확한 계약서 역할을 하게 되었습니다. 이전에는 "이 필드가 null일 수도 있나요?"같은 질문이 오갔지만, 이제는 스펙을 보면 명확합니다.
+
+**2. 조기 발견**
+
+API 스펙 변경 시 TypeScript 컴파일러가 즉시 에러를 표시해주어, 런타임 에러를 사전에 방지할 수 있었습니다. 실제로 백엔드에서 필드명을 변경했을 때, 코드 재생성 후 컴파일 에러로 즉시 발견할 수 있었습니다.
+
+**3. 협업 개선 (희망사항)**
+
+백엔드 팀도 스펙 작성에 더 신경 쓰게 되면서 API 문서 품질이 향상되었습니다. "프론트엔드에서 자동 생성에 사용한다"는 사실이 스펙 작성의 동기가 되었습니다.
+
+물론 백엔드 스펙 품질이 중요하다는 전제가 있지만, 이는 Orval을 사용하지 않더라도 마찬가지입니다. 오히려 Orval을 통해 스펙의 중요성이 더 부각되고, 팀 전체의 API 문서 관리 의식이 높아지는 효과가 있었습니다.
+
+## FAQ
+
+**Q. OpenAPI 스펙이 없으면 어떻게 하나요?**
+
+백엔드 팀에 OpenAPI 스펙 생성을 요청해보세요. SpringDoc, FastAPI 등 대부분의 백엔드 프레임워크에서 자동 생성을 지원합니다.
+
+**Q. 생성된 코드를 수정해도 되나요?**
+
+재생성하면 수정 내용이 모두 사라지므로 직접 수정하지 마세요. 커스텀 로직이 필요하면 wrapper 함수나 hook을 만들어 사용하세요.
+
+**Q. enum 대신 const object + type을 쓰는 이유는?**
+
+TypeScript enum은 트리셰이킹이 잘 안 되고 번들 사이즈가 커질 수 있습니다. const object + type 패턴이 더 가볍고 효율적입니다.
+
+**Q. API 스펙이 바뀌면 프론트엔드도 수정해야 하나요?**
+
+`pnpm generate:api` 실행 후 TypeScript 컴파일러가 변경된 부분에서 에러를 표시해주므로, 해당 부분만 수정하면 됩니다.
+
+**Q. 여러 백엔드 서비스를 하나의 프로젝트에서 관리할 수 있나요?**
+
+네! `orval.config.ts`에 각 서비스별 설정을 추가하고 서비스별 Mutator를 만들면 됩니다. 저희도 retail, settlement 등 여러 스쿼드 API를 관리하고 있습니다.
+
+**Q. CI/CD에서 자동 생성할 수 있나요?**
+
+가능합니다. API 스펙 서버에 접근할 수 있어야 하며, 보통은 로컬에서 생성 후 커밋하는 방식을 사용합니다.
+
+**Q. React Query 외에 다른 라이브러리도 지원하나요?**
+
+`client` 옵션을 `swr`, `fetch`, `axios` 등으로 변경할 수 있습니다. 공식 문서에서 지원 목록을 확인하세요.
+
+**Q. Zod 스키마는 꼭 생성해야 하나요?**
+
+선택사항입니다. Form validation이나 런타임 데이터 검증이 필요하면 생성하는 것을 추천합니다.
+
+**Q. 불필요한 코드까지 번들에 포함되지 않나요?**
+
+`mode: 'tags-split'` 설정으로 실제 사용하는 코드만 번들에 포함됩니다.
+
+## 앞으로 남은 과제들
+
+Orval 도입으로 많은 문제를 해결했지만, 아직 개선할 부분들이 남아있습니다.
+
+**생성 코드 최적화**
+
+현재 생성되는 코드에는 사용하지 않는 제네릭 타입 파라미터가 포함되어 있어 복잡도가 높습니다. 실제로 필요한 제네릭만 남기고 단순화하는 작업이 필요합니다.
+
+**커스텀 로직 가이드 정립**
+
+생성된 코드와 커스텀 코드를 어떻게 분리할지, Wrapper Hook은 언제 만들어야 하는지 등 명확한 기준과 best practice를 정리할 예정입니다.
+
+**점진적 확대 적용**
+
+현재 매장/정산 스쿼드에서 성공적으로 사용 중인 만큼, 물류, 상품 등 다른 도메인으로 확대 적용하고 각 스쿼드의 피드백을 수집하여 개선해나갈 계획입니다.
+
+**자동화 강화**
+
+API 스펙이 변경되면 자동으로 코드를 생성하고 PR을 만드는 CI/CD 파이프라인 구축, 그리고 개발자가 실수로 생성된 코드를 수정하는 것을 방지하는 husky + lint-staged 검증 로직을 추가할 예정입니다.
+
+**팀 온보딩 문서화**
+
+새로운 팀원이나 다른 스쿼드에서 쉽게 Orval을 도입할 수 있도록 설정 방법, 트러블슈팅 가이드, 백엔드 팀과의 협업 가이드 등을 문서화할 계획입니다.
+
+## 마무리하며
+
+사실 처음에는 Orval 도입을 망설였습니다. 새로운 도구를 학습하고 팀에 적용하는 데 드는 비용, 그리고 백엔드 스펙에 의존하게 되는 구조가 부담스러웠기 때문입니다.
+
+하지만 신규 프로젝트 인프라 이관으로 수십 개의 신규 API를 한꺼번에 연동해야 하는 상황에서, 더 이상 수동 작성으로는 감당할 수 없다는 것을 깨달았습니다. 특히 일정이 타이트한 상황에서 Orval은 빛을 발휘했습니다.
+
+**실제로 정산 스쿼드에서 API 연동 개발 일정을 1주일로 잡았는데, Orval 덕분에 하루 만에 연동을 완료했습니다.** 나머지 시간에는 백엔드 팀과 API 수정사항에 대해 커뮤니케이션하고, 변경된 스펙을 반영하는 데 사용할 수 있었습니다. 덕분에 기간 내 여유롭게 개발을 마무리할 수 있었습니다.
+
+물론 완벽한 해결책은 아닙니다. OpenAPI 스펙 품질에 의존적이고, 커스터마이징이 필요한 경우 추가 작업이 필요합니다. 하지만 **프로젝트 초기 세팅과 대량의 API 초기 연동이 필요했던, 그리고 일정이 타이트했던 상황에서는 최고의 선택**이었습니다.
+
+현재는 매장/정산 스쿼드에서 효과를 검증했고, 앞으로 이 경험을 다른 스쿼드와 공유할 계획입니다. 백엔드 팀과도 협업하여 OpenAPI 스펙을 표준 문서로 자리잡게 하고, API 스펙 변경에 민감하게 대응하는 문화를 만들어간다면 프론트엔드와 백엔드 간의 협업이 더욱 효율적이 될 것입니다.
+
+궁극적으로는 프론트엔드 개발자가 반복적인 보일러플레이트 작성 대신 비즈니스 로직 구현에 집중할 수 있는 개발 환경을 만들어가는 것이 목표입니다.
+
+긴 글 읽어주셔서 감사합니다!
+
+## 참고 자료
+
+- [Orval 공식 문서](https://orval.dev/)
+- [Orval GitHub](https://github.com/anymaniax/orval)
+- [Configuration Reference](https://orval.dev/reference/configuration/overview)
+- [TanStack Query 문서](https://tanstack.com/query/latest)
+- [OpenAPI Specification](https://swagger.io/specification/)
