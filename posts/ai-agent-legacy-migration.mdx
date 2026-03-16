@@ -1,0 +1,564 @@
+---
+title: 'AI 에이전트 파이프라인으로 레거시 화면 202개를 자동 생성한 이야기'
+publishedAt: '2026-03-17'
+summary: 'Nexacro 1,700개 화면을 React로 전환하기 위해 멀티 에이전트 파이프라인을 설계했습니다. Steering, Agent, Skill, Hook 아키텍처와 Kiro CLI 첫 사용 후기, 1,700개 확장 가능한 파이프라인 구조와 3일간의 여정을 공유합니다.'
+---
+
+## 들어가며 — Nexacro가 뭔지도 몰랐던 개발자의 워크샵 참여기
+
+회사에서 AWS AI-DLC 워크샵 주제를 공모했습니다. 30개 넘는 주제 중 5개가 선정됐는데, 제가 낸 주제는 선정되지 않았습니다. 하지만 AI 활용에 대한 관심을 보여서인지, 다른 팀의 FE 개발자로 워크샵에 참가할 기회를 얻었습니다.
+
+솔직히 말하면, **Nexacro가 뭔지도, 마이그레이션 대상 시스템이 뭔지도 몰랐습니다.** 그저 워크샵에 참여하고 싶다는 열정 하나로 리서치를 시작했습니다.
+
+워크샵 전에 먼저 검증해보고 싶었습니다. 평소 사용하던 Claude Code로 **"PoC의 PoC"**를 진행했습니다. Nexacro의 화면 정의 파일인 `.xfdl`을 처음 열었을 때 — XML이었습니다. 수천 줄의 XML 태그 안에 컴포넌트 정의, 데이터셋, 이벤트 핸들러가 선언적으로 들어있더군요. 그 순간 "이거 React 컴포넌트랑 구조가 똑같잖아?"라는 생각이 스쳤습니다. Edit 태그는 Input이고, Grid 태그는 AG Grid고, Combo는 Select다.
+
+바로 Claude Code에 xfdl을 던져봤더니 — **된다!** 완벽하진 않았지만, 구조를 읽고 React 컴포넌트로 변환하는 게 가능하다는 것을 확인했습니다. 이 결과에 확신을 얻고 워크샵에서 본격적으로 방향을 디벨롭하기 시작했습니다.
+
+### 워크샵 Day 1 — Kiro CLI와 Vibe Coding으로 큰 그림 그리기
+
+워크샵 첫날, AWS에서 제공한 Kiro CLI와 vibe coding으로 에이전트, 스킬, 워크플로우를 구축했습니다. "agent team" 컨셉에 영감을 받아 각 에이전트에 역할을 부여하고 순차 실행하는 구조를 설계했습니다. 전체를 지휘하는 오케스트레이터까지.
+
+빠르게 돌려봤더니 — 8개 화면만으로는 정보가 부족해서 정확도가 낮았습니다. AI가 Nexacro 컴포넌트를 모르니 자기 맘대로 해석하기 시작하더군요. "이거 되는 거 맞나?" 싶었습니다.
+
+### Day 1 교훈 → Day 2-3 고도화
+
+여기서 선택지가 세 가지였습니다: (a) 더 많은 예시를 프롬프트에 넣는다, (b) 변환 규칙을 명시적으로 문서화한다, (c) 모델을 바꾼다. 저는 (b)를 골랐습니다. 예시를 아무리 넣어도 AI가 "왜 그렇게 변환해야 하는지"를 이해하지 못하면 새로운 패턴에서 또 틀릴 게 뻔했거든요.
+
+전체 1,629개 화면의 공통 패턴을 분석해서 **스티어링 문서**로 추출했습니다. "Edit는 반드시 shadcn Input으로", "Grid는 반드시 AG Grid로" 같은 명시적 규칙들. 에이전트에게 레퍼런스로 제공하니 품질이 확연히 올라갔습니다. 마이그레이션하면서 발견한 교훈을 자동으로 저장하게 만들어 **자기 학습 구조**도 구축했습니다.
+
+Day 2-3는 이 사이클의 반복이었습니다: 실행 → 실패 → 규칙 추가 → 재실행 → 개선. 처음에 변환 규칙이 30줄이었는데, 3일 후 211줄이 됐습니다. 규칙이 추가될 때마다 품질이 계단식으로 올라가는 걸 눈으로 확인할 수 있었습니다.
+
+AWS SA분들이 AI 활용 팁을 정말 많이 알려주셨고, 적극적으로 질문해서 많은 것을 배웠습니다. Kiro를 처음 써봐서 steering, hook 등 잘 몰랐는데, 직접 구축하면서 하나씩 습득해갔습니다. 워크샵 마지막 날 발표에서 "화면명 하나 입력하면 15분 만에 React 코드가 나옵니다"라고 시연했을 때, 팀원들의 반응이 매우 좋았습니다. "이거 실제로 쓸 수 있겠는데?"라는 반응이 가장 기뻤습니다.
+
+이후에도 추가 마이그레이션 테스트를 계속 진행했습니다.
+
+### 문제 정의 — 리서치 과정에서 파악한 것
+
+마이그레이션 대상 시스템은 Nexacro 기반 **1,700개+ 화면**으로 구성된 사내 백오피스였습니다. 화면당 500~6,000줄, 수동 전환 시 추정 공수는 **약 4,300 M/D** (대략 20명이 1년). 핵심 착안점은 이거였습니다:
+
+> `.xfdl = XML` → AI가 구조적으로 파싱할 수 있다
+
+XML 태그가 React 컴포넌트와 1:1 매핑됩니다. Edit→Input, Grid→AG Grid, Combo→Select. 게다가 화면 패턴이 6가지로 수렴하더군요. **파이프라인 한 번 만들면 1,700개에 반복 적용 가능**하다는 뜻이었습니다.
+
+"Nexacro 전문가가 아닌 React 개발자의 시각"이 오히려 강점이 됐습니다.
+
+---
+
+## 1. 왜 에이전트인가 — 프롬프트 엔지니어링의 한계
+
+처음에는 저도 ChatGPT에 "이 xfdl을 React로 변환해줘"라고 해봤습니다. 결과는 실패였습니다.
+
+**왜 실패하는가:**
+- **컨텍스트 부족**: Nexacro 변환 규칙을 매번 설명해야 합니다. Edit가 뭔지, Dataset이 뭔지, transaction()이 뭔지.
+- **재현 불가능**: 같은 프롬프트로도 매번 다른 결과가 나옵니다.
+- **스케일 불가**: 1,700개를 하나씩 프롬프트로 변환한다고요?
+
+멀티 에이전트 시스템은 근본적으로 다릅니다. **프롬프트는 1회성 지시이고, 에이전트는 팀 빌딩입니다.** 한 번 만든 팀이 1,700개 화면을 반복해서 처리합니다.
+
+그리고 가장 중요한 인사이트: **스펙(AC)이 있어야 자동 재시도가 가능합니다.** "뭐가 맞는지" 기준이 없으면 AI가 실패해도 고칠 수 없습니다.
+
+---
+
+## 2. 기술스택 — 왜 이 조합인가
+
+### AI 도구: Claude Code + Kiro CLI
+
+- **Claude Code**: 파일 시스템 직접 접근 + 터미널 실행 + MCP 확장. 1,700개 자동화에는 CLI 기반 자율 실행이 필수입니다.
+- **Kiro**: AWS AI-DLC 방법론 내장. Steering/Agent/Skill/Hook을 JSON으로 선언적 정의할 수 있습니다.
+- Cursor/Copilot은 IDE 플러그인이라 대량 배치 자동화에 구조적 한계가 있습니다.
+
+### React 18
+
+AI 코드 생성 품질이 가장 높은 프레임워크입니다. 학습 데이터 양이 압도적이고, 개발자 채용 풀도 가장 넓습니다. 레거시 탈출 후 유지보수까지 고려하면 가장 합리적인 선택이었습니다.
+
+### Zustand
+
+상태관리 선택이 꽤 중요했습니다. Nexacro의 Dataset은 2차원 테이블 구조인데:
+
+- **Redux**: 보일러플레이트가 과다해서 AI 생성 코드량이 증가하고, action/reducer/selector가 분산됩니다.
+- **Jotai/Recoil**: atom 단위라 Dataset(2차원 테이블) 매핑이 어렵습니다.
+- **Zustand**: 슬라이스 패턴으로 Dataset → Store **1:1 매핑**이 자연스럽고, 보일러플레이트가 최소입니다.
+
+### shadcn/ui + Tailwind CSS + AG Grid
+
+- **MUI/Ant Design**: 스타일 오버라이드가 복잡해서 AI가 일관된 코드를 생성하기 어렵습니다. 컴포넌트마다 `sx` prop이나 `styled()` 래퍼를 써야 하고, 테마 커스텀도 까다롭습니다.
+- **shadcn/ui + Tailwind CSS**: 소스코드를 직접 복사하는 방식이라 커스텀이 자유롭고, **MCP로 설치를 자동화**할 수 있습니다. 에이전트가 `npx shadcn add` 를 직접 실행합니다. Tailwind CSS를 함께 사용하면 **디자인 일관성**이 보장됩니다. `bg-primary`, `text-muted-foreground` 같은 시맨틱 컬러 토큰을 쓰면 AI가 생성하는 202개 화면의 스타일이 자연스럽게 통일됩니다. 원시 컬러(`#ff6900`)를 쓰면 화면마다 미묘하게 달라지거든요.
+- **AG Grid**: Nexacro Grid 대체 유일한 현실적 선택지. ColDef 구조가 유사하고 엔터프라이즈급 기능을 갖추고 있습니다. TanStack Table은 headless라 Nexacro Grid의 리치 기능(merge header, cell editing, row status) 매핑이 불가능했습니다.
+
+### Vite 8 + Vitest
+
+202개 화면 빌드가 **2.58초**입니다. CRA/Webpack이었으면 분 단위였을 겁니다. 배치마다 빌드 검증을 해야 하므로 빌드 속도가 곧 생산성입니다.
+
+### Axios + fast-xml-parser (nexacro-adapter)
+
+Nexacro 백엔드가 XML 응답을 반환합니다. `nexacro-adapter` 패턴으로 기존 백엔드를 **한 줄도 안 바꾸고** React에서 호출할 수 있게 만들었습니다. Transaction 매핑 100%.
+
+---
+
+## 3. 아키텍처 — Steering, Agent, Skill, Hook
+
+### 3-1. Steering — AI에게 "회사 코딩 표준"을 주입하는 방법
+
+11개 스티어링 문서, 총 581줄. `.kiro/steering/` 디렉토리에 들어있습니다.
+
+핵심은 `conversion-rules.md` (211줄)입니다. Nexacro→React 1:1 변환 규칙이 담겨있습니다:
+
+```
+| Nexacro     | React (shadcn/ui)    |
+|-------------|----------------------|
+| Edit        | <Input>              |
+| MaskEdit    | <Input> + mask 유틸  |
+| Combo       | <Select>             |
+| CheckBox    | <Checkbox>           |
+| Calendar    | <DatePicker>         |
+| Grid        | AG Grid React        |
+| Tab         | <Tabs>               |
+| PopupDiv    | <Dialog>             |
+| Dataset     | Zustand store        |
+| transaction | Axios async/await    |
+```
+
+**스티어링이 없으면?** AI가 "창작"을 시작합니다. 빈 껍데기 사건의 원인이 바로 이겁니다 (뒤에서 자세히 다룹니다).
+
+### 3-2. Agent — JSON 하나로 AI 워커 정의
+
+8개 에이전트를 JSON으로 정의했습니다:
+
+```
+| # | 에이전트               | Phase  | 역할                              |
+|---|------------------------|--------|-----------------------------------|
+| 1 | migration-orchestrator | 전체   | 파이프라인 자동 실행 + 재시도 (지휘자) |
+| 2 | nexacro-analyzer       | 1      | .xfdl 파싱, Zone 분해, Dataset/API 추출 |
+| 3 | spec-writer            | 2      | 수용기준(AC) + 테스트 스켈레톤 작성    |
+| 4 | react-codegen          | 3      | React 코드 생성                    |
+| 5 | test-runner            | 4      | 테스트 구현 + 실행                  |
+| 6 | phase-reporter         | 각 Phase | Phase별 검증 리포트                |
+| 7 | quality-validator      | 사후   | 정합성 검증                        |
+| 8 | report-generator       | 사후   | 최종 리포트 생성                    |
+```
+
+에이전트 하나를 정의하는 건 JSON 파일 하나입니다. `migration-orchestrator.json`의 핵심 구조를 보면:
+
+```json
+{
+  "name": "migration-orchestrator",
+  "description": "1,689개 Nexacro 화면의 전체 마이그레이션을 자율적으로 계획·실행·학습하는 오케스트레이터.",
+  "prompt": "당신은 Nexacro → React 전체 마이그레이션을 자율적으로 실행하는 오케스트레이터입니다...",
+  "tools": ["fs_read", "fs_write", "grep", "code", "execute_bash", "use_subagent", "glob"],
+  "resources": [
+    "file://.kiro/steering/**/*.md",
+    "file://docs/02-plans/migration-plan.md",
+    "file://migration-lessons.md",
+    "file://docs/03-analysis/catalog/screen-difficulty.csv"
+  ]
+}
+```
+
+`prompt`에 역할을, `tools`에 사용 가능한 도구를, `resources`에 참조할 문서를 선언합니다. 오케스트레이터는 Phase 4 실패 시 Phase 1부터 자동 재시도(최대 3회)하고, `migration-lessons.md`에 배치별 교훈을 누적합니다.
+
+`react-codegen` 에이전트에는 **5가지 필수 추출 항목**이 명시되어 있습니다:
+
+```
+1. 그리드 컬럼: <Band id="head"> Cell text + <Band id="body"> Cell bind
+2. API URL: Script 내 gfn_Transaction → strUrl
+3. 검색 조건: div_search 내 Calendar/Combo/Edit/CheckBox/Radio
+4. 공통코드: gfn_getCommonCode("코드그룹", ds)
+5. 화면 타이틀: <Form titletext="...">
+```
+
+이 5가지를 원본 xfdl에서 추출하지 않으면 빈 껍데기가 됩니다.
+
+### 3-3. Skill — 도메인 지식을 패키지로 만들기
+
+스킬은 에이전트가 필요할 때 참조하는 상세 레퍼런스입니다.
+
+- **Vercel React Best Practices**: AI가 코드를 생성할 때 품질을 담보하기 위한 핵심 스킬입니다. 60+ 규칙을 severity(CRITICAL/HIGH/MEDIUM)로 분류해서 에이전트에 주입했습니다. 예를 들어 barrel file 금지(직접 import), AG Grid 같은 대형 컴포넌트는 `React.lazy()` 지연 로딩, 독립 비동기 작업은 `Promise.all()` 사용, `memo()` 분리, 함수형 setState 등. 이 규칙이 없으면 AI가 생성하는 코드가 "돌아가긴 하지만 성능이 나쁜" 코드가 됩니다.
+- **nexacro-source-parser**: 1,629개 xfdl에서 추출한 9가지 패턴 카탈로그
+- **shadcn/ui MCP**: 에이전트가 컴포넌트 설치를 직접 실행
+- **nexacro-component-mapping**: Nexacro→React 컴포넌트 상세 매핑
+
+비유하자면: **스티어링 = 회사 코딩 표준, 스킬 = 기술 레퍼런스 북**
+
+### 3-4. Hook — 파이프라인 자동화 트리거
+
+```json
+{
+  "name": "Auto Register Routes",
+  "when": {
+    "type": "fileCreated",
+    "patterns": ["output/react/src/features/*/*.tsx"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "새 화면 컴포넌트가 생성되었습니다. 라우트와 메뉴 등록을 수행해주세요..."
+  }
+}
+```
+
+- **auto-register-route**: 화면 생성 시 라우팅 + 메뉴 자동 등록
+- **update-readme**: 변환 진행률 실시간 반영
+
+한 번 설정하면 잊어도 되는 자동화입니다.
+
+---
+
+## 4. 실전 파이프라인 — 화면 하나가 15분 만에 만들어지는 과정
+
+전체 흐름을 먼저 보겠습니다. 화면명 하나만 입력하면 4단계를 자동으로 거쳐 React 코드가 나옵니다.
+
+```
+사용자: "VOC접수 마이그레이션 실행"
+         │
+    ┌────▼────┐    ┌─────────┐    ┌──────────┐    ┌─────────┐
+    │ Phase 1 │───▶│ Phase 2 │───▶│ Phase 3  │───▶│ Phase 4 │
+    │  분석   │    │  스펙   │    │ 코드 생성 │    │ 테스트  │
+    └─────────┘    └─────────┘    └──────────┘    └────┬────┘
+     xfdl 파싱      수용기준(AC)    TSX/Hook/Store     AC 검증
+     구조 추출       테스트 기준     Type 생성          자동 재시도
+                                                       │
+                                              실패 시 Phase 1 재실행
+                                              (최대 3회)
+                                                       │
+                                                  ┌────▼────┐
+                                                  │  완료   │
+                                                  │ ~15분   │
+                                                  └─────────┘
+```
+
+VOC접수(Super Hard, 6,200줄) 화면을 예시로 보겠습니다:
+
+**Phase 1 (분석)**: xfdl에서 Zone 5개, Dataset 56개, Transaction 5개를 추출합니다.
+
+**Phase 2 (스펙)**: AC 57개, 테스트 스켈레톤 57개를 EARS 표기법으로 생성합니다. 스펙이 있어야 Phase 4에서 "뭐가 맞고 뭐가 틀린지" 판단할 기준이 생깁니다.
+
+**Phase 3 (코드)**: TSX 440줄 + Store + Hook + Type을 생성합니다. 스티어링 11개 규칙을 준수하면서 shadcn/ui + AG Grid로 1:1 변환합니다.
+
+**Phase 4 (테스트)**: 1차 33/57(58%) → 자동 재시도 → **49/57(86%)**
+
+> 핵심: 분석→스펙→코드→테스트를 분리했기 때문에 자동 재시도가 가능합니다. **스펙이 없었다면 "뭐가 틀렸는지" 판단할 기준이 없습니다.**
+
+파이프라인이 생성하는 React 프로젝트 구조입니다. 화면 하나당 `features/` 아래 폴더 하나가 만들어지고, 공통 인프라(~3,600줄)를 202개 화면이 재사용합니다:
+
+```
+output/react/src/
+├── common/                      # 공통 인프라 (~3,600줄)
+│   ├── components/              #   공통 UI 컴포넌트
+│   ├── hooks/                   #   useNexacroAdapter, useCascadeCombo 등
+│   ├── services/                #   nexacro-adapter (XML↔JSON 변환)
+│   ├── stores/                  #   공통 상태 (인증, 코드)
+│   ├── types/                   #   공통 타입 정의
+│   └── utils/                   #   유틸리티 함수
+├── components/                  # shadcn/ui 기반 공통 컴포넌트
+├── features/                    # 화면별 폴더 (222개)
+│   ├── AllVocInq/               #   전체VOC조회
+│   │   ├── AllVocInq.tsx        #     메인 컴포넌트
+│   │   ├── hooks/               #     화면 전용 훅
+│   │   ├── stores/              #     Zustand 스토어 (Dataset 매핑)
+│   │   ├── types/               #     TypeScript 타입
+│   │   └── mocks/               #     테스트 목 데이터
+│   ├── VocReceipt/              #   VOC접수 (Super Hard)
+│   ├── SoloPrmtnGdsReg/         #   단독프로모션상품등록 (Super Hard)
+│   └── ... (222개 화면)
+├── routes/                      # 자동 생성된 라우팅
+└── layout/                      # 레이아웃 (사이드바, 헤더)
+```
+
+---
+
+## 5. 스케일링 — 202개 화면 배치 생성과 학습 루프
+
+### 5-1. 패턴 카탈로그 구축
+
+1,629개 xfdl을 전수 스캔해서 6가지 패턴으로 분류했습니다:
+
+```
+| 패턴            | 비율  | 설명                          |
+|-----------------|-------|-------------------------------|
+| search-list     | 70%   | 검색 + 그리드 조회            |
+| master-detail   | 9%    | 마스터-디테일 2단 그리드      |
+| tab-multi-grid  | 9%    | 탭별 그리드 전환              |
+| simple-popup    | 7%    | 팝업 다이얼로그               |
+| crud-form       | 2.5%  | 등록/수정 폼                  |
+| chart           | 2%    | 차트 대시보드                 |
+```
+
+난이도도 자동 산정했습니다: Super Easy 703 / Easy 570 / Hard 177 / Super Hard 179
+
+### 5-2. 배치 전략과 학습 루프
+
+**Wave 전략**: Super Easy → Easy → Hard → Super Hard. 쉬운 것부터 파이프라인을 검증한 뒤 어려운 쪽으로 진행합니다.
+
+핵심은 `migration-lessons.md`입니다. 배치마다 교훈을 누적하고, 다음 배치에 자동으로 반영합니다. 실제 기록의 일부를 보면:
+
+```markdown
+## Wave 1 - Super Easy
+### Batch 1: lst (20개)
+- 발견: GridToolbar의 actions prop 없음 → children으로 전달
+- 에러: DatePicker에 format prop 없음 → 제거 (YYYY-MM-DD 고정)
+- 개선: 다음 배치부터 GridToolbar은 children 패턴 사용
+
+### Batch 2: lst (30개)
+- 결과: 빌드 에러 0건 (Batch 1 학습 완전 반영)
+```
+
+생산성 변화가 극적이었습니다:
+
+```
+| 단계                | 속도        | 비고              |
+|---------------------|-------------|-------------------|
+| PoC (수동)          | 5시간/화면  | 프롬프트 시행착오 |
+| Batch 1 (반자동)    | 6분/화면    | 파이프라인 초기   |
+| Batch 4 (자동)      | 45초/화면   | 학습 루프 반영    |
+```
+
+단, 이 **400배**는 Super Easy 화면의 코드 생성 시간 기준입니다. 코드 리뷰, 수동 보정, QA까지 포함한 end-to-end 시간은 난이도에 따라 다릅니다 (Super Easy 0.5일, Super Hard 3일). 전체 프로젝트 기준으로는 **4,300 M/D → ~1,300 M/D, 약 3.3배 절감**이며 이것이 실질적 ROI입니다. 그래도 수동 전환 대비 압도적인 차이인 건 분명합니다.
+
+핵심은 "AI가 실수하면 규칙을 추가한다" — 자기 개선하는 파이프라인이라는 점입니다.
+
+### 5-3. 실패와 교훈 — 빈 껍데기 사건
+
+이게 가장 뼈아픈 실패입니다.
+
+Batch 2-3에서 속도를 우선시해서 원본 xfdl 파싱을 건너뛰었습니다. 템플릿만으로 빠르게 생성하면 되지 않을까? 결과는 참담했습니다:
+
+- 그리드 컬럼이 `순번` 1개뿐 (원본은 12개 이상)
+- API URL이 추정값 (`LSTComService.get{화면ID}`)
+- 화면명이 부정확
+
+**화면을 열어도 데이터가 표시되지 않는 빈 껍데기.**
+
+분석해보니 실제 빈 껍데기는 15개였지만 (처음에는 79개로 추정), 검색 조건 누락과 API URL 부정확 등의 품질 문제는 전체 99개 화면에 걸쳐 있었습니다.
+
+교훈: **AI도 garbage in, garbage out.** 이 사건 이후 5가지 필수 추출 항목을 규칙화했고, 배치 생성 후 자동 품질 체크 스크립트도 만들었습니다.
+
+추가로 발견한 문제들도 있었습니다:
+- AG Grid 커스텀 테마 클래스 누락으로 그리드가 높이 0으로 렌더링 (75개 화면 일괄 수정)
+- DatePicker에 `YYYYMMDD` 형식 직접 전달로 Invalid Date 에러 (7개 화면 일괄 수정)
+
+모두 `conversion-rules.md`에 필수 규칙으로 추가했고, 이후 배치에서는 재발하지 않았습니다.
+
+---
+
+## 6. Kiro CLI 첫 사용 후기 — Claude Code 유저의 시선
+
+### 배경: AWS AI-DLC 워크샵
+
+AWS에서 제공한 AI-DLC(AI Development Lifecycle) 방법론 워크샵에서 kiro-cli 토큰을 받아 처음 사용했습니다. 평소 Claude Code만 쓰다가 Kiro를 접한 솔직한 비교입니다.
+
+### Kiro의 구조: .kiro 디렉토리
+
+```
+.kiro/
+├── steering/                    # AI에게 주입하는 "회사 코딩 표준"
+│   ├── conversion-rules.md      #   Nexacro→React 1:1 변환 규칙 (211줄)
+│   ├── coding-conventions.md    #   코딩 컨벤션
+│   ├── nexacro-reference.md     #   Nexacro 컴포넌트 레퍼런스
+│   ├── react-performance.md     #   React 성능 규칙
+│   ├── quality-standards.md     #   품질 기준
+│   ├── structure.md             #   프로젝트 구조 규칙
+│   ├── ui-design.md             #   UI 디자인 가이드
+│   └── ... (11개)
+├── agents/                      # JSON으로 에이전트 정의
+│   ├── migration-orchestrator.json  #   파이프라인 지휘자
+│   ├── nexacro-analyzer.json    #   xfdl 파싱
+│   ├── spec-writer.json         #   수용기준(AC) 작성
+│   ├── react-codegen.json       #   React 코드 생성
+│   ├── test-runner.json         #   테스트 실행
+│   ├── phase-reporter.json      #   Phase별 리포트
+│   ├── quality-validator.json   #   정합성 검증
+│   └── report-generator.json    #   최종 리포트
+├── hooks/                       # 자동화 트리거
+│   ├── auto-register-route.kiro.hook
+│   └── update-readme.kiro.hook
+└── settings/                    # MCP, LSP 설정
+    ├── mcp.json
+    └── lsp.json
+```
+
+깔끔하게 정리되는 디렉토리 구조가 인상적이었습니다.
+
+### AI-DLC 방법론이 인상적이었던 점
+
+Inception → Construction → Operations 3단계 라이프사이클입니다. 매 단계마다 사용자 승인을 거치는데, Claude Code의 자율 실행과는 완전히 다른 철학이었습니다.
+
+산출물이 코드만이 아닙니다:
+- 설계 문서 114개
+- 유저 스토리 55개 (10 Epic, 3 Personas)
+- BDD Acceptance Criteria (Given-When-Then)
+- 감사 로그에 모든 사용자 입력/AI 응답 기록
+
+`aidlc-docs/` 디렉토리에 체계적으로 정리됩니다.
+
+### Claude Code vs Kiro 솔직 비교
+
+```
+| 관점          | Claude Code              | Kiro (AI-DLC)                 |
+|---------------|--------------------------|-------------------------------|
+| 철학          | "빠르게 실행, 나중에 고치기" | "체계적으로 설계, 한 번에 제대로" |
+| 에이전트 정의  | CLAUDE.md + 자연어        | .kiro/agents/*.json (선언적)   |
+| 컨텍스트      | CLAUDE.md (자유형식)      | .kiro/steering/ (구조화)       |
+| 자동화        | hooks (shell script)      | .kiro/hooks/*.kiro.hook (선언적)|
+| 사용자 개입    | 최소 (자율 실행)          | 매 단계 승인 필요               |
+| 대량 배치     | 강점 (CLI 자동화)         | 약점 (단계별 승인 병목)         |
+| 산출물        | 코드 중심                 | 설계 문서 + 코드                |
+| 적합한 상황    | 1,700개 반복 변환         | 신규 프로젝트 체계적 구축        |
+```
+
+### Kiro의 좋은 점
+
+- **custom agent 구축이 자유로움**: JSON으로 prompt/tools/resources를 선언하면 끝
+- **디렉토리 구조가 깔끔**: steering, agents, skills, hooks, settings로 명확히 분리
+- **AI-DLC 방법론이 체계적**: 설계 문서가 자동으로 쌓여서 나중에 참고하기 좋음
+
+### 내가 둘을 조합한 방법
+
+결국 제가 선택한 방식은 이거였습니다:
+
+> **Kiro의 체계 + Claude Code의 자율성**
+
+Kiro의 `.kiro/` 디렉토리 구조(steering, agents, skills, hooks)를 차용해서 에이전트를 JSON으로 정의하되, 실행은 Claude Code의 자율 모드로 돌렸습니다.
+
+1,700개 화면을 매번 승인하며 변환할 수는 없으니까요. 하지만 Kiro의 구조화된 설정 방식 덕분에 에이전트 관리가 훨씬 체계적이 됐습니다.
+
+실제 이 프로젝트의 `.kiro/` 디렉토리가 그 결과입니다.
+
+---
+
+## 7. 결과와 수치
+
+```
+| 지표               | 값                                        |
+|--------------------|-------------------------------------------|
+| DOM 매핑           | 94-100% (평균 97%)                        |
+| 기능 통과율        | 86% (49/57 시나리오)                      |
+| 코드 감소          | 79% (15,558줄 → 3,252줄)                 |
+| Transaction 매핑   | 100% (21/21) — 백엔드 무변경              |
+| TypeScript 빌드    | 0 에러                                    |
+| Vite 빌드          | 2.58초, 3,026 모듈                        |
+| shadcn/ui 준수율   | 100%                                      |
+| 배치 생성          | PoC 8개 → 총 202개 화면                   |
+| 생산성             | 5시간 → 45초/화면 (400배)                 |
+| 전체 ROI           | 4,300 M/D → ~1,300 M/D (70% 절감)        |
+```
+
+난이도별 변환율:
+
+```
+| 난이도      | 자동변환율 | 기능통과율 | 수동 보정 |
+|-------------|------------|------------|-----------|
+| Super Easy  | 95%        | 100%       | 0.5일     |
+| Easy        | 85%        | 94%        | 1일       |
+| Hard        | 70%        | 100%       | 2일       |
+| Super Hard  | 40%        | 63%        | 3일       |
+```
+
+미변환 8개 시나리오 중 대표적인 2개를 구체적으로 보면:
+
+1. **VOC접수 — 폼 모드 전환**: 조회↔등록 모드에 따라 필드 활성화가 달라지는 비즈니스 규칙이 xfdl 이벤트 핸들러 안에 절차적으로 숨어있어, AI가 XML 구조만으로는 모드별 UI 분기를 추론할 수 없었습니다.
+2. **단독프로모션상품등록 — 엑셀 업로드**: Nexacro `ExcelImportObject`는 React에 1:1 대응이 없어, SheetJS 등 별도 라이브러리로 구현해야 합니다. 컴포넌트 매핑 규칙만으로는 해결 불가능한 영역입니다.
+
+이런 실패 케이스가 파이프라인의 한계를 명확히 보여주고, 동시에 다음 고도화의 방향을 알려줍니다.
+
+Transaction 매핑 100%가 특히 의미 있습니다. **백엔드 코드를 한 줄도 바꾸지 않고** React에서 기존 API를 그대로 호출할 수 있다는 뜻이니까요. (XML→JSON 변환 레이어는 별도 필요)
+
+---
+
+## 8. AI 에이전트 시스템 설계 원칙 — 배운 것들
+
+3일간의 워크샵과 이후 고도화를 거치면서 얻은 원칙들입니다:
+
+**1. 스펙 우선 (Spec-First)**
+
+검증 기준 없이 코드만 생성하면 자동 재시도가 불가능합니다. Phase 2에서 AC를 먼저 만든 것이 전체 파이프라인의 핵심이었습니다.
+
+**2. 스티어링의 힘**
+
+컨텍스트 없는 AI는 hallucinate합니다. 변환 규칙 211줄이 1,700개 화면의 품질을 결정합니다. 처음에는 "이 정도면 충분하겠지" 싶었는데, 부족할 때마다 규칙을 추가하니 품질이 계단식으로 올라갔습니다.
+
+**3. 학습 루프**
+
+`migration-lessons.md`에 실수를 누적하고 다음 배치에 자동 반영하는 구조. Batch 1에서 6건의 빌드 에러가 났지만, Batch 2에서는 0건이었습니다.
+
+**4. 품질 게이트**
+
+"80% 통과" 같은 명확한 기준이 있어야 자동화가 돌아갑니다. 기준 없이 "대충 괜찮으면 통과"는 자동화할 수 없습니다.
+
+**5. 원본 데이터 충실도**
+
+AI도 garbage in, garbage out. xfdl 파싱을 건너뛰면 빈 껍데기가 됩니다. 가장 비싼 교훈이었습니다.
+
+**6. 패턴 카탈로그**
+
+1,700개를 다 다르게 취급하면 안 됩니다. 6가지 패턴으로 수렴시키면 파이프라인 하나로 전부 처리 가능합니다.
+
+**7. 점진적 자동화**
+
+처음부터 완벽한 파이프라인은 없습니다. PoC 8개로 시작해서 고도화한 게 핵심입니다.
+
+---
+
+## 9. AI가 잘 못하는 것 — Super Hard의 벽
+
+솔직하게 말하면, Super Hard 화면의 자동변환율은 40%입니다. 나머지 60%는 왜 AI가 못할까요?
+
+**1. 연쇄 의존 로직**: VOC접수 화면에는 대/중/소분류 Combo가 3단으로 연동됩니다. 대분류를 바꾸면 중분류 목록이 바뀌고, 중분류를 바꾸면 소분류가 바뀝니다. 이런 cascade 로직은 xfdl의 이벤트 핸들러 안에 절차적으로 숨어있어서, AI가 XML만 보고는 의존 관계를 추론하기 어렵습니다.
+
+**2. 모드 전환**: 같은 화면이 "조회 모드"와 "등록 모드"에서 완전히 다른 UI를 보여주는 경우. 어떤 필드가 활성화되고 어떤 버튼이 나타나는지가 비즈니스 규칙에 따라 달라집니다. 이건 코드에 명시되지 않은 도메인 지식이 필요합니다.
+
+**3. 복잡한 그리드 조작**: 셀 단위 편집, 행 상태 추적(insert/update/delete), 셀 병합, 조건부 스타일링이 동시에 적용되는 그리드. AG Grid가 이 기능들을 모두 지원하지만, 원본 xfdl에서 이 조합을 정확히 읽어내는 건 현재 파이프라인으로는 한계가 있습니다.
+
+**4. 공통 함수 체인**: `gfn_Transaction()` → 콜백에서 `gfn_showMessage()` → 조건에 따라 `gfn_showConfirm()` → 확인 시 다시 `gfn_Transaction()`. 이런 비동기 콜백 체인을 async/await + React 상태로 변환하는 건 패턴 매칭만으로 안 되고, 실행 흐름을 이해해야 합니다.
+
+결국 **AI가 잘하는 영역은 "구조 변환"이고, 못하는 영역은 "비즈니스 로직 이해"**입니다. 이 경계를 아는 것이 파이프라인 설계의 핵심이었습니다. Super Easy~Easy는 구조 변환만으로 90%+ 해결되고, Hard~Super Hard는 구조 변환 후 비즈니스 로직을 사람이 보정해야 합니다.
+
+---
+
+## 10. 다시 한다면 — 회고
+
+지금 알고 있는 것을 가지고 처음부터 다시 한다면 뭘 다르게 할까요?
+
+**1. 처음부터 xfdl 파싱을 필수로 했을 것입니다.** 빈 껍데기 사건으로 이틀을 날렸습니다. "빠르게 많이" 만드는 것보다 "정확하게 적게" 만드는 게 결국 빠릅니다.
+
+**2. 에이전트를 4개로 시작했을 것입니다.** 처음부터 8개를 만든 게 아니라, 실제로는 orchestrator → analyzer → codegen → test-runner 4개가 핵심이고, 나머지 4개(spec-writer, phase-reporter, quality-validator, report-generator)는 고도화 과정에서 필요해서 추가한 것입니다. 처음부터 8개를 설계하려고 하면 오히려 복잡해집니다.
+
+**3. 패턴 카탈로그를 더 일찍 만들었을 것입니다.** 1,629개를 전수 스캔해서 6가지 패턴으로 분류한 건 Day 2였는데, Day 1에 했으면 첫날 실험의 정확도가 훨씬 높았을 겁니다.
+
+**4. 생성된 코드의 한계를 문서화했을 것입니다.** AI가 생성한 코드에는 `as any` 타입 캐스팅이 종종 있고, 일부 store 접근 패턴이 최적이 아닌 경우가 있습니다. 이런 "AI 코드의 특성"을 미리 정리해두면 코드 리뷰 시간을 크게 줄일 수 있습니다.
+
+---
+
+## 11. 이런 곳에도 쓸 수 있다 — 범용성
+
+이 프로젝트는 Nexacro→React이었지만, **Steering + Agent + Skill + Hook** 패턴은 범용적입니다.
+
+- **레거시 마이그레이션**: jQuery→React, Angular→React, PHP→Next.js
+- **대규모 코드 변환**: JS→TS, Class→Functional, REST→GraphQL
+- **디자인 시스템 교체**: MUI→shadcn, Bootstrap→Tailwind
+- **테스트 코드 자동 생성**: 기존 코드에서 AC 추출 → 테스트
+
+핵심은 동일합니다: 원본을 구조적으로 파싱할 수 있고, 변환 패턴이 유한하고, 품질 기준을 자동 검증할 수 있다면 — 이 아키텍처가 적용 가능합니다.
+
+---
+
+## 마무리 — AI가 개발자를 대체하는 게 아니라
+
+남은 과제가 있습니다. Hard/Super Hard 화면의 수동 보정, 비즈니스 로직 검증, 실제 백엔드 API 연동. 자동화율 100%가 아닌 건 분명합니다.
+
+하지만 **수동 4,300 M/D → ~1,300 M/D**라면, 약 3,000 M/D(15인년)을 절감할 수 있습니다.
+
+결국 이런 결론에 도달했습니다:
+
+> **AI가 개발자를 대체하는 게 아니라, 파이프라인을 설계하는 개발자가 필요하다.**
+
+에이전트는 도구입니다. 어떤 에이전트를 몇 개 만들지, 어떤 스티어링 규칙을 줄지, 품질 기준을 어디에 두는지 — 이 설계는 사람이 합니다. Nexacro를 몰랐던 React 개발자가 3일 만에 202개 화면을 만들 수 있었던 건, AI가 대단해서가 아니라 파이프라인 설계가 제대로 됐기 때문입니다.
+
+궁금한 점이 있다면 편하게 연락주세요. 긴 글 읽어주셔서 감사합니다!
+
+## 참고 자료
+
+- [Claude Code](https://claude.ai/claude-code) — Anthropic CLI
+- [Kiro CLI](https://kiro.dev) — AWS AI-DLC 도구
+- [shadcn/ui](https://ui.shadcn.com/) — React UI 컴포넌트
+- [AG Grid](https://www.ag-grid.com/) — 엔터프라이즈 데이터 그리드
+- [Zustand](https://zustand-demo.pmnd.rs/) — React 상태관리
+- [Vite](https://vite.dev/) — 빌드 도구
