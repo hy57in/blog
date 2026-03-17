@@ -1,7 +1,7 @@
 ---
 title: '레거시 마이그레이션을 위한 Multi Agent Pipeline 구축하기'
 publishedAt: '2026-03-17'
-summary: 'Nexacro 1,700개 화면을 React로 전환하기 위해 멀티 에이전트 파이프라인을 설계했습니다. Steering, Agent, Skill, Hook 아키텍처와 Kiro CLI 첫 사용 후기, 1,700개 확장 가능한 파이프라인 구조와 3일간의 여정을 공유합니다.'
+summary: 'Nexacro 1,700개 화면을 React로 전환하기 위해 멀티 에이전트 파이프라인을 설계했습니다. Steering, Agent, Skill, Hook 아키텍처와 Kiro CLI 첫 사용 후기, 3일간의 여정을 공유합니다.'
 ---
 
 ## 들어가며
@@ -18,7 +18,14 @@ XML 태그가 React 컴포넌트와 1:1 매핑됩니다. Edit→Input, Grid→AG
 
 다만 Nexacro가 뭔지도 모르는 상태에서 워크샵을 선뜻 진행하기가 두려웠습니다. 그래서 먼저 PoC의 PoC를 진행했습니다. Nexacro의 화면 정의 파일인 `.xfdl`을 처음 열었을 때, 수천 줄의 XML 태그 안에 컴포넌트 정의, 데이터셋, 이벤트 핸들러가 선언적으로 들어있었습니다. "이거 React 컴포넌트랑 구조가 똑같잖아?"라는 생각이 들었고, AI에 xfdl을 던져봤더니 완벽하지는 않았지만 구조를 읽고 React 컴포넌트로 변환하는 것이 가능했습니다. 다행히 결과가 잘 나와주었고, 방향성에 확신을 갖고 고도화하기로 했습니다.
 
-### 워크샵 Day 1 — Kiro CLI와 Vibe Coding으로 큰 그림 그리기
+> **이 글은 이런 분들께 도움이 됩니다:**
+> - AI 에이전트로 대규모 코드 마이그레이션을 고민하는 개발자
+> - Kiro CLI / AI-DLC 방법론에 관심 있는 분
+> - 멀티 에이전트 파이프라인 설계 사례가 궁금한 분
+
+## 워크샵 3일간의 여정
+
+### Day 1 — Kiro CLI와 Vibe Coding으로 큰 그림 그리기
 
 워크샵 첫날, AWS에서 제공한 Kiro CLI와 vibe coding으로 에이전트, 스킬, 워크플로우를 구축했습니다. "agent team" 컨셉에 영감을 받아 각 에이전트에 역할을 부여하고 순차 실행하는 구조를 설계했습니다. 전체를 지휘하는 오케스트레이터까지.
 
@@ -38,17 +45,15 @@ AWS SA분들이 AI 활용 팁을 정말 많이 알려주셨고, 적극적으로 
 
 ## 1. 기술스택
 
-```
-| 영역        | 선택                          | 이유                                          |
-|-------------|-------------------------------|-----------------------------------------------|
-| AI 도구     | Kiro CLI                      | Steering/Agent/Skill/Hook을 선언적으로 정의    |
-| 프레임워크  | React 18                      | AI 학습 데이터가 가장 풍부, 유지보수 용이      |
-| 상태관리    | Zustand                       | Dataset→Store 1:1 매핑이 자연스러움            |
-| UI          | shadcn/ui + Tailwind CSS      | 소스 복사 방식이라 커스텀 자유, MCP 자동 설치   |
-| 그리드      | AG Grid                       | Nexacro Grid 대체 유일한 현실적 선택지         |
-| 빌드        | Vite 8 + Vitest               | 202개 화면 빌드 2.58초, 배치 검증에 필수       |
-| API 연동    | Axios + fast-xml-parser       | 기존 XML 백엔드를 한 줄도 안 바꾸고 연동       |
-```
+| 영역 | 선택 | 이유 |
+|------|------|------|
+| AI 도구 | Kiro CLI | Steering/Agent/Skill/Hook을 선언적으로 정의 |
+| 프레임워크 | React 18 | AI 학습 데이터가 가장 풍부, 유지보수 용이 |
+| 상태관리 | Zustand | Dataset→Store 1:1 매핑이 자연스러움 |
+| UI | shadcn/ui + Tailwind CSS | 소스 복사 방식이라 커스텀 자유, MCP 자동 설치 |
+| 그리드 | AG Grid | Nexacro Grid 대체 유일한 현실적 선택지 |
+| 빌드 | Vite 8 + Vitest | 202개 화면 빌드 2.58초, 배치 검증에 필수 |
+| API 연동 | Axios + fast-xml-parser | 기존 XML 백엔드를 한 줄도 안 바꾸고 연동 |
 
 ## 2. 아키텍처 — Steering, Agent, Skill, Hook
 
@@ -58,20 +63,18 @@ AWS SA분들이 AI 활용 팁을 정말 많이 알려주셨고, 적극적으로 
 
 가장 중요한 것은 `conversion-rules.md` (211줄)로, Nexacro→React 1:1 변환 규칙이 담겨있습니다:
 
-```
-| Nexacro     | React (shadcn/ui)    |
-|-------------|----------------------|
-| Edit        | <Input>              |
-| MaskEdit    | <Input> + mask 유틸  |
-| Combo       | <Select>             |
-| CheckBox    | <Checkbox>           |
-| Calendar    | <DatePicker>         |
-| Grid        | AG Grid React        |
-| Tab         | <Tabs>               |
-| PopupDiv    | <Dialog>             |
-| Dataset     | Zustand store        |
-| transaction | Axios async/await    |
-```
+| Nexacro | React (shadcn/ui) |
+|---------|-------------------|
+| Edit | \<Input\> |
+| MaskEdit | \<Input\> + mask 유틸 |
+| Combo | \<Select\> |
+| CheckBox | \<Checkbox\> |
+| Calendar | \<DatePicker\> |
+| Grid | AG Grid React |
+| Tab | \<Tabs\> |
+| PopupDiv | \<Dialog\> |
+| Dataset | Zustand store |
+| transaction | Axios async/await |
 
 스티어링이 없으면 AI가 "창작"을 시작합니다. 빈 껍데기 사건의 원인이 바로 이것입니다 (뒤에서 자세히 다룹니다).
 
@@ -79,18 +82,16 @@ AWS SA분들이 AI 활용 팁을 정말 많이 알려주셨고, 적극적으로 
 
 8개 에이전트를 JSON으로 정의했습니다:
 
-```
-| # | 에이전트               | Phase  | 역할                              |
-|---|------------------------|--------|-----------------------------------|
-| 1 | migration-orchestrator | 전체   | 파이프라인 자동 실행 + 재시도 (지휘자) |
-| 2 | nexacro-analyzer       | 1      | .xfdl 파싱, Zone 분해, Dataset/API 추출 |
-| 3 | spec-writer            | 2      | 수용기준(AC) + 테스트 스켈레톤 작성    |
-| 4 | react-codegen          | 3      | React 코드 생성                    |
-| 5 | test-runner            | 4      | 테스트 구현 + 실행                  |
-| 6 | phase-reporter         | 각 Phase | Phase별 검증 리포트                |
-| 7 | quality-validator      | 사후   | 정합성 검증                        |
-| 8 | report-generator       | 사후   | 최종 리포트 생성                    |
-```
+| # | 에이전트 | Phase | 역할 |
+|---|----------|-------|------|
+| 1 | migration-orchestrator | 전체 | 파이프라인 자동 실행 + 재시도 (지휘자) |
+| 2 | nexacro-analyzer | 1 | .xfdl 파싱, Zone 분해, Dataset/API 추출 |
+| 3 | spec-writer | 2 | 수용기준(AC) + 테스트 스켈레톤 작성 |
+| 4 | react-codegen | 3 | React 코드 생성 |
+| 5 | test-runner | 4 | 테스트 구현 + 실행 |
+| 6 | phase-reporter | 각 Phase | Phase별 검증 리포트 |
+| 7 | quality-validator | 사후 | 정합성 검증 |
+| 8 | report-generator | 사후 | 최종 리포트 생성 |
 
 에이전트 하나를 정의하는 건 JSON 파일 하나입니다. `migration-orchestrator.json`의 핵심 구조를 보면:
 
@@ -219,16 +220,14 @@ output/react/src/
 
 1,629개 xfdl을 전수 스캔해서 6가지 패턴으로 분류했습니다:
 
-```
-| 패턴            | 비율  | 설명                          |
-|-----------------|-------|-------------------------------|
-| search-list     | 70%   | 검색 + 그리드 조회            |
-| master-detail   | 9%    | 마스터-디테일 2단 그리드      |
-| tab-multi-grid  | 9%    | 탭별 그리드 전환              |
-| simple-popup    | 7%    | 팝업 다이얼로그               |
-| crud-form       | 2.5%  | 등록/수정 폼                  |
-| chart           | 2%    | 차트 대시보드                 |
-```
+| 패턴 | 비율 | 설명 |
+|------|------|------|
+| search-list | 70% | 검색 + 그리드 조회 |
+| master-detail | 9% | 마스터-디테일 2단 그리드 |
+| tab-multi-grid | 9% | 탭별 그리드 전환 |
+| simple-popup | 7% | 팝업 다이얼로그 |
+| crud-form | 2.5% | 등록/수정 폼 |
+| chart | 2% | 차트 대시보드 |
 
 난이도도 자동 산정했습니다: Super Easy 703 / Easy 570 / Hard 177 / Super Hard 179
 
@@ -251,13 +250,11 @@ Super Easy → Easy → Hard → Super Hard 순서로, 쉬운 것부터 파이�
 
 생산성 변화가 극적이었습니다:
 
-```
-| 단계                | 속도        | 비고              |
-|---------------------|-------------|-------------------|
-| PoC (수동)          | 5시간/화면  | 프롬프트 시행착오 |
-| Batch 1 (반자동)    | 6분/화면    | 파이프라인 초기   |
-| Batch 4 (자동)      | 45초/화면   | 학습 루프 반영    |
-```
+| 단계 | 속도 | 비고 |
+|------|------|------|
+| PoC (수동) | 5시간/화면 | 프롬프트 시행착오 |
+| Batch 1 (반자동) | 6분/화면 | 파이프라인 초기 |
+| Batch 4 (자동) | 45초/화면 | 학습 루프 반영 |
 
 단, 이 400배는 Super Easy 화면의 코드 생성 시간 기준입니다. 코드 리뷰, 수동 보정, QA까지 포함한 end-to-end 시간은 난이도에 따라 다릅니다 (Super Easy 0.5일, Super Hard 3일). 전체 프로젝트 기준으로는 4,300 M/D → ~1,300 M/D, 약 3.3배 절감이며 이것이 실질적 ROI입니다.
 
@@ -341,35 +338,31 @@ Inception → Construction → Operations 3단계 라이프사이클입니다. �
 
 ### Kiro의 아쉬운 점
 
-Kiro는 커스텀에 강한 만큼 결과물이 오로지 AI 설계자의 역량에 달려있습니다. Claude Code가 알잘딱깔센으로 알아서 해주는 반면, Kiro는 steering/agent/skill을 직접 잘 설계해야 원하는 대로 동작합니다. Kiro나 AI 엔지니어링에 익숙하지 않다 보니 처음엔 다루기 어려운 점이 있었습니다. 그만큼 잘 설계하면 강력하지만 진입 장벽이 있습니다.
+Kiro는 커스텀에 강한 만큼 결과물이 오로지 AI 설계자의 역량에 달려있습니다. Claude Code가 별도 설정 없이도 알아서 잘 처리해주는 반면, Kiro는 steering/agent/skill을 직접 잘 설계해야 원하는 대로 동작합니다. Kiro나 AI 엔지니어링에 익숙하지 않다 보니 처음엔 다루기 어려운 점이 있었습니다. 그만큼 잘 설계하면 강력하지만 진입 장벽이 있습니다.
 
 ## 6. 결과와 수치
 
-```
-| 지표               | 값                                        |
-|--------------------|-------------------------------------------|
-| DOM 매핑           | 94-100% (평균 97%)                        |
-| 기능 통과율        | 86% (49/57 시나리오)                      |
-| 코드 감소          | 79% (15,558줄 → 3,252줄)                 |
-| Transaction 매핑   | 100% (21/21) — 백엔드 무변경              |
-| TypeScript 빌드    | 0 에러                                    |
-| Vite 빌드          | 2.58초, 3,026 모듈                        |
-| shadcn/ui 준수율   | 100%                                      |
-| 배치 생성          | PoC 8개 → 총 202개 화면                   |
-| 생산성             | 5시간 → 45초/화면 (400배)                 |
-| 전체 ROI           | 4,300 M/D → ~1,300 M/D (70% 절감)        |
-```
+| 지표 | 값 |
+|------|-----|
+| DOM 매핑 | 94-100% (평균 97%) |
+| 기능 통과율 | 86% (49/57 시나리오) |
+| 코드 감소 | 79% (15,558줄 → 3,252줄) |
+| Transaction 매핑 | 100% (21/21) — 백엔드 무변경 |
+| TypeScript 빌드 | 0 에러 |
+| Vite 빌드 | 2.58초, 3,026 모듈 |
+| shadcn/ui 준수율 | 100% |
+| 배치 생성 | PoC 8개 → 총 202개 화면 |
+| 생산성 | 5시간 → 45초/화면 (400배) |
+| 전체 ROI | 4,300 M/D → ~1,300 M/D (70% 절감) |
 
 난이도별 변환율:
 
-```
-| 난이도      | 자동변환율 | 기능통과율 | 수동 보정 |
-|-------------|------------|------------|-----------|
-| Super Easy  | 95%        | 100%       | 0.5일     |
-| Easy        | 85%        | 94%        | 1일       |
-| Hard        | 70%        | 100%       | 2일       |
-| Super Hard  | 40%        | 63%        | 3일       |
-```
+| 난이도 | 자동변환율 | 기능통과율 | 수동 보정 |
+|--------|-----------|-----------|----------|
+| Super Easy | 95% | 100% | 0.5일 |
+| Easy | 85% | 94% | 1일 |
+| Hard | 70% | 100% | 2일 |
+| Super Hard | 40% | 63% | 3일 |
 
 미변환 8개 시나리오 중 대표적인 2개를 구체적으로 보면:
 
