@@ -55,6 +55,8 @@ React 기술스택은 코드 품질보다 마이그레이션 성공 여부가 �
 
 각 단계마다 리포트를 생성하고, `migration-lessons.md`에 교훈을 기록해서 한 번 실패한 건 반복하지 않도록 했습니다. 이렇게 만들어진 게 **Steering + Agent + Skill + Hook** 4계층 아키텍처입니다.
 
+![Agent Orchestration Pipeline](/images/ai-agent/agent-orchestration-pipeline.png)
+
 ### 3-1. Steering — AI에게 "코드 작성 규칙"을 주입하는 방법
 
 전체 1,629개 화면의 공통 패턴을 분석해서 **스티어링 문서**로 추출했습니다. 11개 문서, 총 581줄. 핵심은 `conversion-rules.md` (211줄)입니다:
