@@ -4,7 +4,7 @@
 
 ## 🚀 Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router, Turbopack)
 - **Language**: TypeScript (Strict Mode)
 - **Styling**: Tailwind CSS v4
 - **Content**: MDX
@@ -31,6 +31,11 @@ pnpm install
 
 # Run development server with Turbopack
 pnpm dev
+
+# Validate types and build output
+pnpm lint
+pnpm typecheck
+pnpm test
 
 # Build for production
 pnpm build
