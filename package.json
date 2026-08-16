@@ -11,6 +11,7 @@
     "lint:fix": "oxlint --type-aware --report-unused-disable-directives --fix .",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-default-type=module --experimental-strip-types --test tests/*.test.mts",
+    "smoke": "node tests/production-smoke.mjs",
     "check": "pnpm lint && pnpm typecheck && pnpm test"
   },
   "dependencies": {
