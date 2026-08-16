@@ -38,7 +38,7 @@ export const metadata: Metadata = {
       { url: '/favicon/android-icon-192x192.png', sizes: '192x192', type: 'image/png' },
     ],
   },
-  manifest: '/favicon/manifest.json',
+  manifest: '/manifest.json',
   other: {
     'msapplication-TileColor': '#ffffff',
     'msapplication-TileImage': '/favicon/ms-icon-144x144.png',
