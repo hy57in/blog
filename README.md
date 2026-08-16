@@ -8,15 +8,14 @@
 - **Language**: TypeScript (Strict Mode)
 - **Styling**: Tailwind CSS v4
 - **Content**: MDX
-- **Database**: Vercel Postgres (조회수 카운터)
-- **Analytics**: Vercel Analytics & Speed Insights
+- **Quality**: Oxlint, TypeScript, Node.js Test Runner
+- **Analytics**: Google Analytics, Vercel Analytics & Speed Insights
 - **Deployment**: Vercel
 
 ## ✨ Features
 
 - 📝 MDX 블로그 포스팅
 - 🎨 다크모드 지원
-- 📊 조회수 카운터 (Vercel Postgres)
 - 🔍 SEO 최적화 (sitemap, robots, JSON-LD schema)
 - 📡 RSS Feed
 - 🖼️ 동적 OG 이미지 생성
@@ -25,6 +24,9 @@
 
 ## 🛠️ Development
 
+- Node.js 22.13 이상, 23 미만
+- pnpm 11.22.0
+
 ```bash
 # Install dependencies
 pnpm install
@@ -32,10 +34,11 @@ pnpm install
 # Run development server with Turbopack
 pnpm dev
 
-# Validate types and build output
+# Run static analysis, type checks, and unit tests
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm check
 
 # Build for production
 pnpm build
