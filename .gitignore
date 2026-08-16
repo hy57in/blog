@@ -39,3 +39,7 @@ next-env.d.ts
 
 # local agent runtime state
 /.omx/
+
+# locally generated resume artifacts
+/output/pdf/
+/tmp/pdfs/

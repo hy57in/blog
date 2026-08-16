@@ -47,6 +47,17 @@ pnpm build
 pnpm start
 ```
 
+## 📄 Resume
+
+`app/about/resume-data.ts` is the single source for the public About page and the resume PDF.
+The PDF generator and download button are intentionally local-only. The button and `/about/resume.pdf` return path are disabled in production.
+
+```bash
+pnpm resume:pdf
+```
+
+The generated file is written to `output/pdf/김효진_NAVER_WEBTOON_Frontend_Resume.pdf` and is ignored by Git.
+
 ## 📝 Adding Blog Posts
 
 1. `/posts` 디렉토리에 `.mdx` 파일 생성
