@@ -1,42 +1,14 @@
 import { baseUrl } from 'app/sitemap'
 import { getBlogPosts } from 'app/blog/utils'
+import { buildRssFeed } from './utils'
 
-export async function GET() {
-  let allBlogs = await getBlogPosts()
-
-  const itemsXml = allBlogs
-    .sort((a, b) => {
-      if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {
-        return -1
-      }
-      return 1
-    })
-    .map(
-      (post) =>
-        `<item>
-          <title>${post.metadata.title}</title>
-          <link>${baseUrl}/blog/${post.slug}</link>
-          <description>${post.metadata.summary || ''}</description>
-          <pubDate>${new Date(
-            post.metadata.publishedAt
-          ).toUTCString()}</pubDate>
-        </item>`
-    )
-    .join('\n')
-
-  const rssFeed = `<?xml version="1.0" encoding="UTF-8" ?>
-  <rss version="2.0">
-    <channel>
-        <title>Hyojin's Blog</title>
-        <link>${baseUrl}</link>
-        <description>안녕하세요, 프론트엔드 개발자 김효진의 블로그입니다.</description>
-        ${itemsXml}
-    </channel>
-  </rss>`
+export function GET() {
+  const rssFeed = buildRssFeed(getBlogPosts(), baseUrl)
 
   return new Response(rssFeed, {
     headers: {
-      'Content-Type': 'text/xml',
+      'Cache-Control': 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
+      'Content-Type': 'application/rss+xml; charset=utf-8',
     },
   })
 }
