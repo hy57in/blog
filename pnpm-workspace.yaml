@@ -1,0 +1,9 @@
+overrides:
+  # Keep the lockfile installable under pnpm's minimum-release-age policy.
+  electron-to-chromium: 1.5.406
+
+minimumReleaseAge: 1440
+
+ignoredBuiltDependencies:
+  - '@vercel/speed-insights'
+  - sharp
