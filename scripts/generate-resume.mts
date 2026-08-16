@@ -10,7 +10,10 @@ const tempDir = resolve(projectRoot, 'tmp/pdfs')
 const outputDir = resolve(projectRoot, 'output/pdf')
 const htmlPath = resolve(tempDir, 'hyojin-kim-resume.html')
 const pdfPath = resolve(outputDir, resumePdfFileName)
-const legacyPdfPath = resolve(outputDir, 'hyojin-kim-resume.pdf')
+const obsoletePdfPaths = [
+  resolve(outputDir, '김효진_NAVER_WEBTOON_Frontend_Resume.pdf'),
+  resolve(outputDir, 'hyojin-kim-resume.pdf'),
+]
 
 const chromeCandidates = [
   process.env.CHROME_PATH,
@@ -227,6 +230,8 @@ if (result.status !== 0 || !existsSync(pdfPath)) {
   throw new Error(result.stderr || result.stdout || 'PDF 생성에 실패했습니다.')
 }
 
-rmSync(legacyPdfPath, { force: true })
+for (const obsoletePdfPath of obsoletePdfPaths) {
+  rmSync(obsoletePdfPath, { force: true })
+}
 
 console.log(`Resume PDF created: ${pdfPath}`)

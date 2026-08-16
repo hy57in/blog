@@ -212,8 +212,8 @@ test('keeps the reviewed community descriptions in the shared resume data', () =
 
 test('keeps resume downloads local to the development environment', () => {
   assert.equal(resumeDownloadPath, '/about/resume.pdf')
-  assert.equal(resumePdfFileName, '김효진_NAVER_WEBTOON_Frontend_Resume.pdf')
-  assert.equal(resumePdfFallbackFileName, 'Hyojin_Kim_NAVER_WEBTOON_Frontend_Resume.pdf')
+  assert.equal(resumePdfFileName, '김효진_Frontend_Resume.pdf')
+  assert.equal(resumePdfFallbackFileName, 'Hyojin_Kim_Frontend_Resume.pdf')
   assert.equal(isResumeDownloadEnabled('development'), true)
   assert.equal(isResumeDownloadEnabled('production'), false)
   assert.equal(isResumeDownloadEnabled(undefined), false)

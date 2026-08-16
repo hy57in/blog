@@ -56,7 +56,7 @@ The PDF generator and download button are intentionally local-only. The button a
 pnpm resume:pdf
 ```
 
-The generated file is written to `output/pdf/김효진_NAVER_WEBTOON_Frontend_Resume.pdf` and is ignored by Git.
+The generated file is written to `output/pdf/김효진_Frontend_Resume.pdf` and is ignored by Git.
 
 ## 📝 Adding Blog Posts
 
