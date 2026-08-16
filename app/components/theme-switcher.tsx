@@ -39,7 +39,7 @@ export const ThemeSwitcher = () => {
     applyTheme(nextTheme);
   }
   
-  return <button onClick={handleToggle}><ThemeIcon theme={theme} /></button>
+  return <button className="theme-toggle" type="button" onClick={handleToggle} aria-label={`${theme === 'light' ? '다크' : '라이트'} 모드로 전환`}><ThemeIcon theme={theme} /></button>
 }
 
 const ThemeIcon = ({ theme }: Props) => {

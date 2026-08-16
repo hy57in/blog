@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     apple: [
       { url: '/favicon/apple-icon-57x57.png', sizes: '57x57' },
       { url: '/favicon/apple-icon-60x60.png', sizes: '60x60' },
-      { url: '/apple-icon-72x72.png', sizes: '72x72' },
+      { url: '/favicon/apple-icon-72x72.png', sizes: '72x72' },
       { url: '/favicon/apple-icon-76x76.png', sizes: '76x76' },
       { url: '/favicon/apple-icon-114x114.png', sizes: '114x114' },
       { url: '/favicon/apple-icon-120x120.png', sizes: '120x120' },
@@ -38,10 +38,10 @@ export const metadata: Metadata = {
       { url: '/favicon/android-icon-192x192.png', sizes: '192x192', type: 'image/png' },
     ],
   },
-  manifest: '/manifest.json',
+  manifest: '/favicon/manifest.json',
   other: {
     'msapplication-TileColor': '#ffffff',
-    'msapplication-TileImage': '/ms-icon-144x144.png',
+    'msapplication-TileImage': '/favicon/ms-icon-144x144.png',
     'theme-color': '#ffffff',
   },
   openGraph: {
@@ -74,7 +74,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
+      lang="ko"
       className={cx(
         'bg-background dark:bg-background-dark text-text dark:text-text-dark',
         GeistSans.variable,
