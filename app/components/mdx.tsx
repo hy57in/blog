@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import { highlight } from 'sugar-high'
 import React from 'react'
+import type { ComponentProps, ComponentPropsWithoutRef, ReactNode } from 'react'
 
 function Table({ data }: { data: { headers: string[], rows: string[][] } }) {
   let headers = data.headers.map((header, index) => (
@@ -26,13 +27,12 @@ function Table({ data }: { data: { headers: string[], rows: string[][] } }) {
   )
 }
 
-function CustomLink(props: any) {
-  let href = props.href
+function CustomLink({ href = '', children, ...props }: ComponentPropsWithoutRef<'a'>) {
 
   if (href.startsWith('/')) {
     return (
       <Link href={href} {...props}>
-        {props.children}
+        {children}
       </Link>
     )
   }
@@ -41,16 +41,22 @@ function CustomLink(props: any) {
     return <a {...props} />
   }
 
-  return <a target="_blank" rel="noopener noreferrer" {...props} />
+  return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
 }
 
-function RoundedImage(props: any) {
+type RoundedImageProps = Omit<ComponentProps<typeof Image>, 'alt' | 'width' | 'height'> & {
+  alt: string
+  width: number
+  height?: number
+}
+
+function RoundedImage(props: RoundedImageProps) {
   // height가 없으면 width에 비례하여 자동 계산
-  const { width, height, ...restProps } = props
+  const { alt, width, height, ...restProps } = props
   const finalHeight = height || Math.round(width * 0.6) // 기본 비율 5:3
   
   return <Image 
-    alt={props.alt} 
+    alt={alt}
     className="rounded-lg max-w-full h-auto" 
     width={width}
     height={finalHeight}
@@ -59,8 +65,8 @@ function RoundedImage(props: any) {
   />
 }
 
-function Code({ children, ...props }: { children: string, [key: string]: any }) {
-  let codeHTML = highlight(children)
+function Code({ children, ...props }: ComponentPropsWithoutRef<'code'> & { children?: ReactNode }) {
+  const codeHTML = highlight(String(children))
   return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
 }
 
@@ -112,7 +118,7 @@ let components = {
   Table,
 }
 
-export function CustomMDX(props: any) {
+export function CustomMDX(props: ComponentProps<typeof MDXRemote>) {
   return (
     <MDXRemote
       {...props}

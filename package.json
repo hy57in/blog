@@ -3,34 +3,36 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-default-type=module --experimental-strip-types --test tests/*.test.mts"
   },
   "dependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
     "@vercel/analytics": "^2.0.1",
-    "@vercel/postgres": "^0.10.0",
     "@vercel/speed-insights": "^2.0.0",
-    "geist": "1.7.0",
-    "next": "16.1.6",
+    "geist": "1.7.2",
+    "next": "16.3.1",
     "next-mdx-remote": "^6.0.0",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "sugar-high": "^0.9.5",
-    "typescript": "5.9.3"
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "sugar-high": "^2.0.1",
+    "typescript": "7.0.2"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.1",
-    "@types/node": "25.5.0",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
-    "autoprefixer": "^10.4.27",
-    "postcss": "^8.5.8",
-    "tailwindcss": "^4.2.1"
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "26.2.0",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^4.3.3"
   },
   "packageManager": "pnpm@10.18.1+sha512.77a884a165cbba2d8d1c19e3b4880eee6d2fcabd0d879121e282196b80042351d5eb3ca0935fa599da1dc51265cc68816ad2bddd2a2de5ea9fdf92adbec7cd34",
   "pnpm": {
     "overrides": {
-      "@types/react": "19.2.14",
-      "@types/react-dom": "19.2.3"
+      "@types/react": "19.2.18",
+      "@types/react-dom": "19.2.4"
     },
     "ignoredBuiltDependencies": [
       "@vercel/speed-insights",

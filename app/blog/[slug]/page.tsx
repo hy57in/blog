@@ -2,9 +2,6 @@ import { notFound } from 'next/navigation'
 import { CustomMDX } from 'app/components/mdx'
 import { formatDate, getBlogPosts } from 'app/blog/utils'
 import { baseUrl } from 'app/sitemap'
-import { ViewCount } from 'app/components/view-count'
-import { Suspense } from 'react'
-import Link from 'next/link'
 
 
 export async function generateStaticParams() {
@@ -28,9 +25,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     summary: description,
     image,
   } = post.metadata
-  let ogImage = image
-    ? image
-    : `${baseUrl}/og?title=${encodeURIComponent(title)}`
+  const ogImage = image ? new URL(image, baseUrl).toString() : `${baseUrl}/og?title=${encodeURIComponent(title)}`
 
   return {
     title,
@@ -78,8 +73,8 @@ export default async function Blog(props: { params: Promise<{ slug: string }> })
             dateModified: post.metadata.publishedAt,
             description: post.metadata.summary,
             image: post.metadata.image
-              ? `${baseUrl}${post.metadata.image}`
-              : `/og?title=${encodeURIComponent(post.metadata.title)}`,
+              ? new URL(post.metadata.image, baseUrl).toString()
+              : `${baseUrl}/og?title=${encodeURIComponent(post.metadata.title)}`,
             url: `${baseUrl}/blog/${post.slug}`,
             author: {
               '@type': 'Person',
@@ -91,13 +86,10 @@ export default async function Blog(props: { params: Promise<{ slug: string }> })
       <h1 className="title font-semibold text-2xl tracking-tighter">
         {post.metadata.title}
       </h1>
-      <div className="flex justify-between items-center mt-2 mb-8 text-sm">
+      <div className="mt-2 mb-8 text-sm">
         <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
-          {formatDate(post.metadata.publishedAt)}
+          <time dateTime={post.metadata.publishedAt}>{formatDate(post.metadata.publishedAt)}</time>
         </p>
-        <Suspense>
-          <ViewCount slug={params.slug} />
-        </Suspense>
       </div>
       <article className="prose">
         <CustomMDX source={post.content} />
