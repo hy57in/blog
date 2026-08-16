@@ -4,15 +4,17 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import { highlight } from 'sugar-high'
 import React from 'react'
 import type { ComponentProps, ComponentPropsWithoutRef, ReactNode } from 'react'
+import { getLinkKind } from './link-utils'
+import { getTextContent, slugifyHeading } from './mdx-utils'
 
 function Table({ data }: { data: { headers: string[], rows: string[][] } }) {
-  let headers = data.headers.map((header, index) => (
-    <th key={index}>{header}</th>
+  const headers = data.headers.map((header) => (
+    <th key={header}>{header}</th>
   ))
-  let rows = data.rows.map((row, index) => (
-    <tr key={index}>
+  const rows = data.rows.map((row) => (
+    <tr key={row.join('|')}>
       {row.map((cell, cellIndex) => (
-        <td key={cellIndex}>{cell}</td>
+        <td key={`${data.headers[cellIndex] ?? 'cell'}:${cell}`}>{cell}</td>
       ))}
     </tr>
   ))
@@ -28,8 +30,9 @@ function Table({ data }: { data: { headers: string[], rows: string[][] } }) {
 }
 
 function CustomLink({ href = '', children, ...props }: ComponentPropsWithoutRef<'a'>) {
+  const linkKind = getLinkKind(href)
 
-  if (href.startsWith('/')) {
+  if (linkKind === 'internal') {
     return (
       <Link href={href} {...props}>
         {children}
@@ -37,8 +40,8 @@ function CustomLink({ href = '', children, ...props }: ComponentPropsWithoutRef<
     )
   }
 
-  if (href.startsWith('#')) {
-    return <a {...props} />
+  if (linkKind === 'anchor') {
+    return <a href={href} {...props}>{children}</a>
   }
 
   return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
@@ -46,19 +49,19 @@ function CustomLink({ href = '', children, ...props }: ComponentPropsWithoutRef<
 
 type RoundedImageProps = Omit<ComponentProps<typeof Image>, 'alt' | 'width' | 'height'> & {
   alt: string
-  width: number
+  width?: number
   height?: number
 }
 
 function RoundedImage(props: RoundedImageProps) {
-  // height가 없으면 width에 비례하여 자동 계산
   const { alt, width, height, ...restProps } = props
-  const finalHeight = height || Math.round(width * 0.6) // 기본 비율 5:3
+  const finalWidth = width ?? 800
+  const finalHeight = height ?? Math.round(finalWidth * 0.6)
   
   return <Image 
     alt={alt}
     className="rounded-lg max-w-full h-auto" 
-    width={width}
+    width={finalWidth}
     height={finalHeight}
     style={{ maxWidth: '100%', height: 'auto' }}
     {...restProps} 
@@ -66,26 +69,14 @@ function RoundedImage(props: RoundedImageProps) {
 }
 
 function Code({ children, ...props }: ComponentPropsWithoutRef<'code'> & { children?: ReactNode }) {
-  const codeHTML = highlight(String(children))
+  const code = getTextContent(children)
+  const codeHTML = highlight(code)
   return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
 }
 
-function slugify(str: string) {
-  return str
-    .toString()
-    .toLowerCase()
-    .trim() // Remove whitespace from both ends of a string
-    .replace(/\s+/g, '-') // Replace spaces with -
-    .replace(/&/g, '-and-') // Replace & with 'and'
-    // 한국어, 일본어, 중국어 문자는 유지하고 특수문자만 제거
-    .replace(/[^\w\u3131-\u3163\uac00-\ud7a3\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\-]+/g, '')
-    .replace(/\-\-+/g, '-') // Replace multiple - with single -
-    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
-}
-
 function createHeading(level: number) {
-  const Heading = ({ children }: { children: string }) => {
-    let slug = slugify(children)
+  const Heading = ({ children }: { children: ReactNode }) => {
+    const slug = slugifyHeading(children)
     return React.createElement(
       `h${level}`,
       { id: slug },
@@ -105,7 +96,7 @@ function createHeading(level: number) {
   return Heading
 }
 
-let components = {
+const components = {
   h1: createHeading(1),
   h2: createHeading(2),
   h3: createHeading(3),
@@ -119,10 +110,15 @@ let components = {
 }
 
 export function CustomMDX(props: ComponentProps<typeof MDXRemote>) {
+  const { components: providedComponents, ...restProps } = props
+  const resolvedComponents = typeof providedComponents === 'function'
+    ? providedComponents(components)
+    : Object.assign({}, components, providedComponents)
+
   return (
     <MDXRemote
-      {...props}
-      components={{ ...components, ...(props.components || {}) }}
+      {...restProps}
+      components={resolvedComponents}
     />
   )
 }
