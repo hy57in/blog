@@ -108,6 +108,10 @@ body {
   @apply visible;
 }
 
+.anchor:focus-visible {
+  @apply visible;
+}
+
 .prose a {
   @apply text-primary dark:text-primary-dark;
   @apply underline decoration-primary dark:decoration-primary-dark;

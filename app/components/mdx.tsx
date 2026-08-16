@@ -76,6 +76,7 @@ function Code({ children, ...props }: ComponentPropsWithoutRef<'code'> & { child
 
 function createHeading(level: number) {
   const Heading = ({ children }: { children: ReactNode }) => {
+    const headingText = getTextContent(children)
     const slug = slugifyHeading(children)
     return React.createElement(
       `h${level}`,
@@ -85,6 +86,7 @@ function createHeading(level: number) {
           href: `#${slug}`,
           key: `link-${slug}`,
           className: 'anchor',
+          'aria-label': `${headingText} 섹션 링크`,
         }),
       ],
       children
