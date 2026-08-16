@@ -1,16 +1,19 @@
 {
   "private": true,
+  "engines": {
+    "node": ">=22.13 <23"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit",
+    "lint": "oxlint --type-aware --report-unused-disable-directives --max-warnings 0 .",
+    "lint:fix": "oxlint --type-aware --report-unused-disable-directives --fix .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-default-type=module --experimental-strip-types --test tests/*.test.mts"
+    "test": "node --experimental-default-type=module --experimental-strip-types --test tests/*.test.mts",
+    "check": "pnpm lint && pnpm typecheck && pnpm test"
   },
   "dependencies": {
-    "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "geist": "1.7.2",
@@ -18,25 +21,18 @@
     "next-mdx-remote": "^6.0.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "sugar-high": "^2.0.1",
-    "typescript": "7.0.2"
+    "sugar-high": "^2.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "26.2.0",
-    "autoprefixer": "^10.5.4",
+    "@types/node": "22.20.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "oxlint": "1.78.0",
+    "oxlint-tsgolint": "7.0.2001",
     "postcss": "^8.5.26",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "typescript": "7.0.2"
   },
-  "packageManager": "pnpm@10.18.1+sha512.77a884a165cbba2d8d1c19e3b4880eee6d2fcabd0d879121e282196b80042351d5eb3ca0935fa599da1dc51265cc68816ad2bddd2a2de5ea9fdf92adbec7cd34",
-  "pnpm": {
-    "overrides": {
-      "@types/react": "19.2.18",
-      "@types/react-dom": "19.2.4"
-    },
-    "ignoredBuiltDependencies": [
-      "@vercel/speed-insights",
-      "sharp"
-    ]
-  }
+  "packageManager": "pnpm@11.22.0+sha512.1ff870c4c6133dfd88fb2afc46dd13d47f09c9794b438c6fdb47ca98caf3bc16381ee0be93a091b8e3824cf01f889f46d7d9e20910fb0be1ab0fb5baa80dd621"
 }
