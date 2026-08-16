@@ -54,8 +54,10 @@ const renderCoreSkillGroups = () =>
 
 const renderExperience = () =>
   resume.experiences
-    .map(
-      (experience, index) => `
+    .map((experience, index) => {
+      const content = experience.pdf
+
+      return `
         <section class="experience${index > 0 ? ' legacy-experience' : ''}${index === 1 ? ' page-two-start' : ''}">
           <div class="experience-heading">
             <div>
@@ -64,11 +66,11 @@ const renderExperience = () =>
             </div>
             <p class="period">${escapeHtml(experience.period)}</p>
           </div>
-          ${experience.summary ? `<p class="summary">${escapeHtml(experience.summary)}</p>` : ''}
-          <p class="technologies">${experience.technologies.map(escapeHtml).join(' · ')}</p>
-          ${experience.highlightsTitle ? `<p class="highlights-title">${escapeHtml(experience.highlightsTitle)}</p>` : ''}
+          ${content.summary ? `<p class="summary">${escapeHtml(content.summary)}</p>` : ''}
+          <p class="technologies">${content.technologies.map(escapeHtml).join(' · ')}</p>
+          ${content.highlightsTitle ? `<p class="highlights-title">${escapeHtml(content.highlightsTitle)}</p>` : ''}
           <ul>
-            ${experience.highlights
+            ${content.highlights
               .map(
                 (highlight) => `
                   <li>
@@ -79,8 +81,8 @@ const renderExperience = () =>
               )
               .join('')}
           </ul>
-        </section>`,
-    )
+        </section>`
+    })
     .join('')
 
 type CompactItem = {
@@ -111,63 +113,63 @@ const html = `<!doctype html>
     <meta charset="utf-8" />
     <title>${escapeHtml(resume.profile.name)} Resume</title>
     <style>
-      @page { size: A4; margin: 10mm 13mm 11mm; }
+      @page { size: A4; margin: 12mm 14mm 13mm; }
       * { box-sizing: border-box; }
-      html { color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif; font-size: 9pt; line-height: 1.42; }
+      html { color: #1a1a1a; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif; font-size: 9.4pt; line-height: 1.48; }
       body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       a { color: inherit; text-decoration: none; }
       h1, h2, h3, p { margin: 0; }
-      header.profile { padding-bottom: 4mm; }
-      .eyebrow { color: #b85f42; font-size: 8.5pt; font-weight: 700; letter-spacing: .02em; }
-      h1 { font-size: 22pt; line-height: 1.12; margin-top: 1mm; letter-spacing: -.03em; }
+      header.profile { padding-bottom: 5mm; }
+      .eyebrow { color: #b85f42; font-size: 9pt; font-weight: 700; letter-spacing: .02em; }
+      h1 { font-size: 23pt; line-height: 1.12; margin-top: 1.2mm; letter-spacing: -.03em; }
       h1 span { color: #73706d; font-size: 11pt; font-weight: 500; margin-left: 2mm; }
-      .headline { font-size: 9.7pt; line-height: 1.45; margin-top: 2.5mm; max-width: 170mm; }
-      .contact { align-items: center; color: #625e5b; display: flex; flex-wrap: wrap; font-size: 8.3pt; gap: 1.5mm 3mm; margin-top: 3mm; }
+      .headline { font-size: 10.2pt; line-height: 1.5; margin-top: 3mm; max-width: 168mm; }
+      .contact { align-items: center; color: #625e5b; display: flex; flex-wrap: wrap; font-size: 8.8pt; gap: 1.7mm 3.2mm; margin-top: 3.5mm; }
       .contact a { border-bottom: .5px solid #bbb6b2; }
-      .section { margin-top: 5mm; }
-      .section-title { border-bottom: 1px solid #dedbd8; font-size: 12.2pt; letter-spacing: -.015em; margin-bottom: 2.7mm; padding-bottom: 1.3mm; }
-      .intro { display: grid; gap: 1mm; }
-      .intro-item { line-height: 1.42; padding-left: 3mm; position: relative; }
+      .section { margin-top: 6mm; }
+      .section-title { border-bottom: 1px solid #dedbd8; font-size: 13pt; letter-spacing: -.015em; margin-bottom: 3.3mm; padding-bottom: 1.6mm; }
+      .intro { display: grid; gap: 1.3mm; }
+      .intro-item { line-height: 1.48; padding-left: 3.2mm; position: relative; }
       .intro-item::before { color: #b85f42; content: "•"; left: .5mm; position: absolute; top: 0; }
-      .core-groups { display: grid; gap: .6mm; margin-top: 2.2mm; }
-      .core-row { color: #9b4f39; display: block; font-size: 7.8pt; font-weight: 600; }
-      .core-row strong { color: #514e4b; display: inline-block; margin-right: 1.5mm; min-width: 30mm; }
-      .featured { color: #625e5b; display: flex; flex-wrap: wrap; font-size: 7.7pt; gap: 1mm 2.5mm; margin-top: 1.4mm; }
+      .core-groups { display: grid; gap: .8mm; margin-top: 2.8mm; }
+      .core-row { color: #9b4f39; display: block; font-size: 8.2pt; font-weight: 600; }
+      .core-row strong { color: #514e4b; display: inline-block; margin-right: 1.7mm; min-width: 31mm; }
+      .featured { color: #625e5b; display: flex; flex-wrap: wrap; font-size: 8.1pt; gap: 1.2mm 2.7mm; margin-top: 2mm; }
       .featured strong { color: #514e4b; }
       .featured a { border-bottom: .5px solid #bbb6b2; }
-      .experience { break-inside: avoid; margin-top: 4mm; }
+      .experience { break-inside: avoid; margin-top: 4.8mm; }
       .experience:first-of-type { margin-top: 0; }
       .experience-heading, .compact-item { align-items: baseline; display: grid; gap: 6mm; grid-template-columns: 1fr auto; }
-      .experience h2 { font-size: 11.4pt; }
-      .role, .period, .muted { color: #625e5b; font-size: 8.2pt; }
-      .summary { margin-top: 1.6mm; }
-      .technologies { color: #934a35; font-size: 7.5pt; font-weight: 600; margin-top: 1mm; }
-      .highlights-title { font-size: 9.2pt; font-weight: 700; line-height: 1.28; margin-top: 1.7mm; }
-      ul { border-left: 1px solid #dedbd8; list-style: none; margin: 2.2mm 0 0; padding: 0 0 0 3.2mm; }
-      li { break-inside: avoid; margin-top: 2mm; }
+      .experience h2 { font-size: 12pt; }
+      .role, .period, .muted { color: #625e5b; font-size: 8.7pt; }
+      .summary { margin-top: 2mm; }
+      .technologies { color: #934a35; font-size: 8pt; font-weight: 600; margin-top: 1.2mm; }
+      .highlights-title { font-size: 9.7pt; font-weight: 700; line-height: 1.34; margin-top: 2mm; }
+      ul { border-left: 1px solid #dedbd8; list-style: none; margin: 2.6mm 0 0; padding: 0 0 0 3.5mm; }
+      li { break-inside: avoid; margin-top: 2.4mm; }
       li:first-child { margin-top: 0; }
-      .highlight-title { font-size: 9.8pt; font-weight: 700; letter-spacing: -.01em; line-height: 1.28; }
-      .highlight-description { color: #3f3c3a; font-size: 8.4pt; line-height: 1.4; margin-top: .6mm; }
-      li .detail { color: #4b4845; font-size: 7.9pt; line-height: 1.38; margin-top: .55mm; padding-left: 2mm; text-indent: -2mm; }
-      .legacy-experience { margin-top: 3.2mm; }
-      .legacy-experience .summary { margin-top: 1.1mm; }
-      .legacy-experience .technologies { font-size: 7.4pt; margin-top: .7mm; }
-      .legacy-experience .highlights-title { font-size: 8.8pt; margin-top: 1.3mm; }
-      .legacy-experience ul { margin-top: .9mm; }
-      .legacy-experience li { margin-top: 1.1mm; }
-      .legacy-experience .highlight-description { font-size: 8.2pt; line-height: 1.36; margin-top: 0; }
+      .highlight-title { font-size: 10.2pt; font-weight: 700; letter-spacing: -.01em; line-height: 1.34; }
+      .highlight-description { color: #3f3c3a; font-size: 8.9pt; line-height: 1.48; margin-top: .8mm; }
+      li .detail { color: #4b4845; font-size: 8.4pt; line-height: 1.44; margin-top: .7mm; padding-left: 2mm; text-indent: -2mm; }
+      .legacy-experience { margin-top: 4.5mm; }
+      .legacy-experience .summary { margin-top: 1.5mm; }
+      .legacy-experience .technologies { font-size: 7.9pt; margin-top: 1mm; }
+      .legacy-experience .highlights-title { font-size: 9.4pt; margin-top: 1.7mm; }
+      .legacy-experience ul { margin-top: 1.5mm; }
+      .legacy-experience li { margin-top: 1.8mm; }
+      .legacy-experience .highlight-description { font-size: 8.7pt; line-height: 1.45; margin-top: 0; }
       .legacy-experience .bullet-description { padding-left: 2mm; text-indent: -2mm; }
       .page-two-start { break-before: page; margin-top: 0; }
-      .compact-grid { display: grid; gap: 2.2mm; }
-      .compact-item h3 { font-size: 9pt; }
+      .compact-grid { display: grid; gap: 3mm; }
+      .compact-item h3 { font-size: 9.7pt; }
       .compact-item .compact-description { color: #3f3c3a; }
-      .compact-item p:not(.period) { font-size: 8.2pt; margin-top: .5mm; }
-      .compact-item .muted { font-size: 7.8pt; }
-      .compact-section { margin-top: 4mm; }
-      .compact-section .section-title { margin-bottom: 2mm; }
-      .compact-section .compact-grid { gap: 1.5mm; }
-      .compact-section .compact-item p:not(.period) { font-size: 8pt; line-height: 1.38; margin-top: .3mm; }
-      .compact-section .compact-item .muted { font-size: 7.8pt; }
+      .compact-item p:not(.period) { font-size: 8.8pt; margin-top: .7mm; }
+      .compact-item .muted { font-size: 8.2pt; }
+      .compact-section { margin-top: 5mm; }
+      .compact-section .section-title { margin-bottom: 2.5mm; }
+      .compact-section .compact-grid { gap: 2mm; }
+      .compact-section .compact-item p:not(.period) { font-size: 8.6pt; line-height: 1.44; margin-top: .5mm; }
+      .compact-section .compact-item .muted { font-size: 8.2pt; }
     </style>
   </head>
   <body>
