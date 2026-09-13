@@ -42,6 +42,11 @@
 .profile { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 24px; }
 .identity { min-width: 0; }
 .profileActions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.backToTop { position: fixed; right: max(20px, calc((100vw - 832px) / 2 - 64px)); bottom: max(24px, env(safe-area-inset-bottom)); z-index: 20; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--resume-border); border-radius: 50%; background: var(--color-background); color: var(--resume-text); box-shadow: 0 2px 8px rgb(0 0 0 / .08); }
+:global(.dark) .backToTop { background: var(--color-background-dark); }
+.backToTop:hover { color: var(--resume-accent); }
+.name { scroll-margin-top: 90px; }
+.name:focus { outline: none; }
 .portrait { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; flex-shrink: 0; }
 .role { margin-top: 4px; color: var(--resume-secondary); font-size: var(--small-size); }
 .name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 32px; font-weight: 700; line-height: 1.3; }
@@ -138,7 +143,7 @@
   :global(body):has(.page) > :global(aside),
   :global(body):has(.page) > :global(footer),
   :global(body):has(.page) :global(.theme-toggle),
-  .download, .contents { display: none !important; }
+  .download, .contents, .backToTop { display: none !important; }
 
   .page, :global(.dark) .page {
     --resume-text: var(--color-text);

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { resume, type ResumeHighlight, type ResumeItem } from './resume-data'
 import { isResumeDownloadEnabled, resumeDownloadPath, resumePdfFileName } from './resume-download'
 import styles from './resume.module.css'
+import { BackToTop } from './back-to-top'
 
 const showResumeDownload = isResumeDownloadEnabled(process.env.NODE_ENV)
 
@@ -104,7 +105,7 @@ export default function AboutPage() {
           className={styles.portrait}
         />
         <div className={styles.identity}>
-          <h1 className={styles.name}>
+            <h1 id="resume-top" tabIndex={-1} className={styles.name}>
             {resume.profile.name}<span>{resume.profile.englishName}</span>
           </h1>
           <p className={styles.role}>{resume.profile.role}</p>
@@ -200,6 +201,7 @@ export default function AboutPage() {
         <SectionTitle id="education-title">Education</SectionTitle>
         <CompactItems items={resume.education} />
       </section>
+      <BackToTop />
     </article>
   )
 }
