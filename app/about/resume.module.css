@@ -1,0 +1,201 @@
+.page {
+  --resume-text: var(--color-text);
+  --resume-secondary: var(--color-text-secondary);
+  --resume-accent: var(--color-primary);
+  --resume-border: var(--color-border);
+  --body-size: 16px;
+  --small-size: 14px;
+  --body-leading: 1.75;
+  --section-size: 23px;
+  --company-size: 22px;
+  --project-size: 19px;
+  --highlight-size: 16px;
+  --section-gap: 52px;
+  --company-gap: 52px;
+  --project-gap: 32px;
+  --highlight-gap: 22px;
+  --paragraph-gap: 8px;
+  color: var(--resume-text);
+  font-size: var(--body-size);
+  line-height: var(--body-leading);
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+  padding-block: 24px 40px;
+}
+
+:global(.dark) .page {
+  --resume-text: var(--color-text-dark);
+  --resume-secondary: var(--color-text-secondary-dark);
+  --resume-accent: var(--color-primary-dark);
+  --resume-border: var(--color-border-dark);
+}
+
+:global(main):has(.page) { max-width: 832px; padding-inline: 24px; }
+:global(html):has(.page) { min-width: 0; }
+@media screen and (prefers-reduced-motion: no-preference) {
+  :global(html):has(.page) { scroll-behavior: smooth; }
+}
+.page a { text-underline-offset: 4px; }
+.page a:hover { text-decoration: underline; }
+.page a:focus-visible,
+.companyTitle:focus-visible { outline: 2px solid var(--resume-accent); outline-offset: 5px; border-radius: 2px; }
+.profile { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 24px; }
+.identity { min-width: 0; }
+.profileActions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.portrait { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; flex-shrink: 0; }
+.role { margin-top: 4px; color: var(--resume-secondary); font-size: var(--small-size); }
+.name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 32px; font-weight: 700; line-height: 1.3; }
+.name span { color: var(--resume-secondary); font-size: 18px; font-weight: 400; }
+.download { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 4px 0; font-size: var(--small-size); font-weight: 500; }
+.download svg { flex-shrink: 0; }
+.contacts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 12px; font-size: var(--small-size); }
+.contacts a { color: var(--resume-secondary); text-decoration: none; }
+.contactValue { display: none; }
+.updated { font-size: 12px; color: var(--resume-secondary); }
+.section { margin-top: var(--section-gap); }
+.sectionTitle { font-size: var(--section-size); font-weight: 650; letter-spacing: -.02em; line-height: 1.3; padding-bottom: 10px; margin-bottom: 24px; border-bottom: 1px solid var(--resume-border); }
+.summary { list-style: disc; padding-left: 20px; }
+.summary > li + li { margin-top: 12px; }
+.summary li::marker,
+.details li::marker { color: var(--resume-secondary); }
+.contents { margin-block: -6px 28px; font-size: var(--small-size); }
+.contents ul { display: flex; flex-wrap: wrap; gap: 4px 18px; list-style: none; padding: 0; }
+.contents a { display: inline-block; padding-block: 5px; text-decoration: none; color: var(--resume-secondary); }
+.experience + .experience { margin-top: var(--company-gap); }
+.companyHeader { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px 20px; }
+.companyIdentity { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.companyIdentity > div { min-width: 0; }
+.companyLogo { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; margin-top: 2px; }
+.companyTitle { font-size: var(--company-size); font-weight: 700; line-height: 1.35; letter-spacing: -.02em; scroll-margin-top: 90px; }
+.secondary { font-size: var(--small-size); color: var(--resume-secondary); margin-top: 4px; }
+.period { font-size: var(--small-size); color: var(--resume-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.companySummary { margin-top: 16px; }
+.responsibilities { margin-top: 12px; }
+.responsibilities > div + div { margin-top: 4px; }
+.responsibilities dt { display: inline; font-weight: 600; }
+.responsibilities dd { display: inline; }
+.skills { display: flex; flex-wrap: wrap; gap: 3px 12px; list-style: none; padding: 0; margin-top: 12px; font-size: var(--small-size); color: var(--resume-secondary); }
+.skills li { max-width: 100%; }
+.project { margin-top: var(--project-gap); }
+.projectTitle { font-size: var(--project-size); font-weight: 650; letter-spacing: -.01em; line-height: 1.45; }
+.experienceIntro + .projectTitle { margin-top: var(--project-gap); }
+.description { margin-top: var(--paragraph-gap); }
+.highlights { margin-top: 16px; }
+.titledHighlights { list-style: none; padding: 0; }
+.plainHighlights { list-style: disc; padding-left: 1.2em; }
+.plainHighlights > .highlight + .highlight { margin-top: 8px; }
+.plainHighlights > li::marker { font-size: .78em; color: var(--resume-secondary); }
+.highlight + .highlight { margin-top: var(--highlight-gap); }
+.highlightTitle { font-size: var(--highlight-size); font-weight: 600; line-height: 1.55; }
+.highlight > .description:first-child { margin-top: 0; }
+.details, .nestedDetails { list-style: disc; padding-left: 1.2em; margin-top: var(--paragraph-gap); }
+.details li, .nestedDetails li { padding-left: .2em; }
+.details li::marker, .nestedDetails li::marker { font-size: .78em; }
+.nestedDetails { list-style: circle; }
+.details > li + li, .nestedDetails > li + li { margin-top: 6px; }
+.relatedLinks { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: var(--small-size); }
+.relatedLinks a { color: var(--resume-accent); text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); }
+.externalMark { display: inline-block; margin-left: .35em; font-size: .85em; text-decoration: none; }
+.compactItems { display: grid; gap: 24px; }
+.compactItem { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 6px 20px; }
+.compactTitle { font-size: var(--highlight-size); font-weight: 650; line-height: 1.45; }
+
+@media screen and (max-width: 600px) {
+  :global(main):has(.page) { padding-inline: 20px; }
+  .page { --body-size: 15px; --company-size: 21px; --project-size: 18px; --section-gap: 40px; padding-top: 16px; }
+  .portrait { width: 64px; height: 64px; }
+  .profile { grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: start; }
+  .profileActions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+  .contacts { gap: 4px 14px; margin-top: 8px; }
+  .name { font-size: 28px; }
+  .name span { font-size: 16px; }
+  .download { margin-left: 0; }
+  .companyHeader, .compactItem { grid-template-columns: minmax(0, 1fr); }
+  .companyHeader > .period { padding-left: 48px; }
+  .compactItem > .period { grid-row: 1; }
+  .updated { margin-left: 0; }
+}
+
+@media print {
+  @page { size: A4; margin: 11mm 14mm; }
+
+  :global(html):has(.page),
+  :global(body):has(.page) {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    display: block;
+    overflow: visible;
+    background: white !important;
+    color: var(--color-text) !important;
+    color-scheme: light;
+  }
+  :global(main):has(.page) { width: auto; max-width: none; margin: 0; padding: 0; display: block; }
+  /* The site navigation and theme toggle live in the body's direct aside. */
+  :global(body):has(.page) > :global(aside),
+  :global(body):has(.page) > :global(footer),
+  :global(body):has(.page) :global(.theme-toggle),
+  .download, .contents { display: none !important; }
+
+  .page, :global(.dark) .page {
+    --resume-text: var(--color-text);
+    --resume-secondary: #505050;
+    --resume-accent: var(--color-text);
+    --resume-border: #d5d5d5;
+    --body-size: 9.4pt;
+    --small-size: 8.5pt;
+    --body-leading: 1.42;
+    --section-size: 14pt;
+    --company-size: 13pt;
+    --project-size: 11.3pt;
+    --highlight-size: 10.2pt;
+    --section-gap: 5mm;
+    --company-gap: 5mm;
+    --project-gap: 3mm;
+    --highlight-gap: 2mm;
+    --paragraph-gap: 1mm;
+    padding: 0;
+    background: white;
+    word-break: normal;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page p, .page li { orphans: 2; widows: 2; }
+  .page img { break-inside: avoid; }
+  .profile { gap: 2mm 4mm; break-inside: avoid; }
+  .profile { grid-template-columns: auto minmax(0, 1fr); }
+  .profileActions { grid-column: 2; align-items: flex-start; }
+  .portrait { width: 16mm; height: 16mm; }
+  .name { font-size: 23pt; gap: 2mm; }
+  .name span { font-size: 12pt; }
+  .contacts { gap: 1mm 3mm; margin-top: 2mm; font-size: 8pt; }
+  .contactLabel { display: none; }
+  .contactValue { display: inline; }
+  .updated { font-size: 8pt; }
+  .sectionTitle { padding-bottom: 1.5mm; margin-bottom: 3mm; break-after: avoid; }
+  .summary > li + li { margin-top: 1.5mm; }
+  .summary li::marker { font-size: .78em; }
+  .summary, .details, .nestedDetails, .plainHighlights { padding-left: 3.5mm; }
+  .companyHeader { gap: 2mm 4mm; }
+  .companyIdentity { gap: 2.5mm; }
+  .companyLogo { width: 8mm; height: 8mm; margin-top: 0; }
+  .companySummary, .responsibilities { margin-top: 2mm; }
+  .secondary { margin-top: .6mm; }
+  .skills { gap: .5mm 2.5mm; margin-top: 1.5mm; font-size: 8pt; }
+  .experience, .project, .section { break-inside: auto; }
+  .experienceIntro { break-inside: auto; }
+  .responsibilities { break-inside: avoid; }
+  .companyHeader, .projectIntro { break-inside: avoid; break-after: avoid; }
+  .companyTitle, .projectTitle, .highlightTitle, .compactTitle { break-after: avoid; }
+  .highlights { margin-top: 2mm; }
+  .highlight { break-inside: avoid; }
+  .details > li + li, .nestedDetails > li + li { margin-top: .7mm; }
+  .plainHighlights > .highlight + .highlight { margin-top: .7mm; }
+  .relatedLinks { margin-top: 1mm; gap: 1mm 3mm; }
+  .compactItems { display: block; }
+  .compactItem { break-inside: avoid; }
+  .compactItem + .compactItem { margin-top: 2.5mm; }
+}

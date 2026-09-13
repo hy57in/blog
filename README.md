@@ -50,13 +50,13 @@ pnpm start
 ## 📄 Resume
 
 `app/about/resume-data.ts` is the single source for the public About page and the resume PDF.
-The PDF generator and download button are intentionally local-only. The button and `/about/resume.pdf` return path are disabled in production.
+The PDF generator prints the local About page using its shared print CSS, including company logos and career links. The download button and `/about/resume.pdf` route are disabled in production. Start `pnpm dev` first, then run the export in another terminal:
 
 ```bash
 pnpm resume:pdf
 ```
 
-The generated file is written to `output/pdf/김효진_Frontend_Resume.pdf` and is ignored by Git.
+The generated file is written to `output/pdf/김효진_Frontend_Resume.pdf` and is ignored by Git. If the local app uses a different port, set `RESUME_BASE_URL` (for example, `http://localhost:3001`). Chrome or Chromium is required; `CHROME_PATH` can override its executable path.
 
 ## 📝 Adding Blog Posts
 

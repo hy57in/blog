@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { resume, type ResumeItem, type ResumeSkillGroup } from './resume-data'
+import { resume, type ResumeHighlight, type ResumeItem } from './resume-data'
 import { isResumeDownloadEnabled, resumeDownloadPath, resumePdfFileName } from './resume-download'
+import styles from './resume.module.css'
 
 const showResumeDownload = isResumeDownloadEnabled(process.env.NODE_ENV)
 
@@ -16,61 +17,74 @@ export const metadata: Metadata = {
 }
 
 function SectionTitle({ children, id }: { children: React.ReactNode; id: string }) {
+  return <h2 id={id} className={styles.sectionTitle}>{children}</h2>
+}
+
+function Tags({ values }: { values: readonly string[] }) {
   return (
-    <h2
-      id={id}
-      className="mb-5 border-b border-border pb-2 text-lg font-semibold tracking-tight text-text dark:border-border-dark dark:text-text-dark md:mb-6 md:text-xl"
-    >
-      {children}
-    </h2>
+    <ul aria-label="기술 스택" className={styles.skills}>
+      {values.map((value) => <li key={value}>{value}</li>)}
+    </ul>
   )
 }
 
-function Tags({ values, label = '기술 스택' }: { values: readonly string[]; label?: string }) {
+function Highlights({
+  highlights,
+  heading: Heading = 'h4',
+}: {
+  highlights: readonly ResumeHighlight[]
+  heading?: 'h4' | 'h5'
+}) {
+  if (!highlights.length) return null
+  const hasHeadings = highlights.some((highlight) => highlight.title)
+
   return (
-    <ul aria-label={label} className="flex list-none flex-wrap gap-1.5 p-0">
-      {values.map((value) => (
-        <li
-          key={value}
-          className="rounded border border-border bg-neutral-100 px-2 py-0.5 text-[11px] text-text-secondary dark:border-border-dark dark:bg-neutral-800 dark:text-text-secondary-dark"
-        >
-          {value}
+    <ul className={`${styles.highlights} ${hasHeadings ? styles.titledHighlights : styles.plainHighlights}`}>
+      {highlights.map((highlight) => (
+        <li key={highlight.title ?? highlight.description} className={styles.highlight}>
+          {highlight.title ? (
+            <>
+              <Heading className={styles.highlightTitle}>{highlight.title}</Heading>
+              <ul className={styles.details}>
+                {[highlight.description, ...(highlight.details ?? [])].map((detail) => <li key={detail}>{detail}</li>)}
+              </ul>
+            </>
+          ) : (
+            <>
+              <p className={styles.description}>{highlight.description}</p>
+              {highlight.details?.length ? (
+                <ul className={styles.nestedDetails}>
+                  {highlight.details.map((detail) => <li key={detail}>{detail}</li>)}
+                </ul>
+              ) : null}
+            </>
+          )}
+          {highlight.links?.length ? (
+            <p className={styles.relatedLinks}>
+              {highlight.links.map((link) => (
+                <Link key={link.href} href={link.href}>
+                  {link.label}<span className={styles.externalMark} aria-hidden="true">↗</span>
+                </Link>
+              ))}
+            </p>
+          ) : null}
         </li>
       ))}
     </ul>
   )
 }
 
-function SkillGroups({ groups }: { groups: readonly ResumeSkillGroup[] }) {
-  return (
-    <dl className="grid gap-2.5">
-      {groups.map((group) => (
-        <div key={group.label} className="grid gap-1.5 sm:grid-cols-[10rem_1fr] sm:items-start sm:gap-4">
-          <dt className="text-xs font-semibold text-text-secondary dark:text-text-secondary-dark">{group.label}</dt>
-          <dd>
-            <Tags values={group.values} label={group.label} />
-          </dd>
-        </div>
-      ))}
-    </dl>
-  )
-}
-
 function CompactItems({ items }: { items: readonly ResumeItem[] }) {
   return (
-    <div className="space-y-5">
+    <div className={styles.compactItems}>
       {items.map((item) => (
-        <article key={`${item.name}-${item.period}`} className="grid gap-1 sm:grid-cols-[1fr_auto] sm:gap-x-6">
+        <article key={`${item.name}-${item.period}`} className={styles.compactItem}>
           <div>
-            <h3 className="font-semibold text-text dark:text-text-dark">{item.name}</h3>
-            {item.description && <p className="mt-1 text-sm text-text dark:text-text-dark">{item.description}</p>}
-            {item.detail && (
-              <p className="mt-0.5 text-sm text-text-secondary dark:text-text-secondary-dark">{item.detail}</p>
-            )}
+            <h3 className={styles.compactTitle}>{item.name}</h3>
+            {item.description && <p className={styles.description}>{item.description}</p>}
+            {item.detail && <p className={styles.secondary}>{item.detail}</p>}
           </div>
-          <p className="text-sm tabular-nums text-text-secondary dark:text-text-secondary-dark sm:text-right">
-            {item.period}
-          </p>
+          <p className={styles.period}>{item.period}</p>
         </article>
       ))}
     </div>
@@ -79,177 +93,112 @@ function CompactItems({ items }: { items: readonly ResumeItem[] }) {
 
 export default function AboutPage() {
   return (
-    <article className="resume-page pb-4">
-      <header className="resume-profile relative mb-10 pb-4 md:mb-12">
-        {showResumeDownload && (
-          <a
-            href={resumeDownloadPath}
-            download={resumePdfFileName}
-            aria-label="PDF 이력서 다운로드"
-            title="PDF 이력서 다운로드"
-            className="absolute right-0 top-0 inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-text-secondary transition-colors hover:border-primary hover:text-primary focus-visible:border-primary focus-visible:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-border-dark dark:text-text-secondary-dark dark:hover:border-primary-dark dark:hover:text-primary-dark dark:focus-visible:border-primary-dark dark:focus-visible:text-primary-dark dark:focus-visible:ring-primary-dark/30"
-          >
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" strokeWidth="1.8">
-              <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
-        )}
-
-        <div className="flex items-start gap-5 pr-10 md:gap-7">
-          <Image
-            src="/images/about/profile-image.png"
-            alt="김효진"
-            width={400}
-            height={400}
-            priority
-            className="h-24 w-24 shrink-0 rounded-full border border-border object-cover dark:border-border-dark md:h-28 md:w-28"
-          />
-          <div className="min-w-0 flex-1">
-            <p className="mb-1 text-sm font-medium text-primary dark:text-primary-dark">{resume.profile.role}</p>
-            <h1
-              aria-label={`${resume.profile.name} ${resume.profile.englishName}`}
-              className="text-2xl font-semibold tracking-tight text-text dark:text-text-dark md:text-3xl"
-            >
-              {resume.profile.name}
-              <span className="ml-2 text-base font-normal text-text-secondary dark:text-text-secondary-dark md:text-lg">
-                {resume.profile.englishName}
-              </span>
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-text dark:text-text-dark md:text-[15px]">
-              {resume.profile.headline}
-            </p>
-          </div>
+    <article className={`resume-page ${styles.page}`}>
+      <header className={styles.profile}>
+        <Image
+          src="/images/about/profile-image.png"
+          alt="김효진"
+          width={400}
+          height={400}
+          priority
+          className={styles.portrait}
+        />
+        <div className={styles.identity}>
+          <h1 className={styles.name}>
+            {resume.profile.name}<span>{resume.profile.englishName}</span>
+          </h1>
+          <p className={styles.role}>{resume.profile.role}</p>
+          <nav aria-label="연락처" className={styles.contacts}>
+            {resume.profile.links.map((link) => (
+              <Link key={link.label} href={link.href}>
+                <span className={styles.contactLabel}>{link.label}</span>
+                <span className={styles.contactValue}>{link.display}</span>
+              </Link>
+            ))}
+          </nav>
         </div>
-
-        <nav aria-label="연락처" className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-          {resume.profile.links.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="font-medium text-text-secondary underline decoration-border underline-offset-4 transition-colors hover:text-primary focus-visible:text-primary dark:text-text-secondary-dark dark:decoration-border-dark dark:hover:text-primary-dark dark:focus-visible:text-primary-dark"
-            >
-              {link.label}
-            </Link>
-          ))}
-          <span className="ml-auto text-xs text-text-secondary dark:text-text-secondary-dark">
-            Updated {resume.updatedAt}
-          </span>
-        </nav>
+        <div className={styles.profileActions}>
+          {showResumeDownload && (
+            <a href={resumeDownloadPath} download={resumePdfFileName} className={styles.download}>
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              PDF 다운로드
+            </a>
+          )}
+          <p className={styles.updated}>Updated {resume.updatedAt}</p>
+        </div>
       </header>
 
-      <section className="resume-section mb-12 md:mb-14" aria-labelledby="summary-title">
+      <section className={styles.section} aria-labelledby="summary-title">
         <SectionTitle id="summary-title">Summary</SectionTitle>
-        <ul className="list-disc space-y-2.5 pl-5 text-sm leading-relaxed text-text marker:text-primary dark:text-text-dark dark:marker:text-primary-dark md:text-[15px]">
-          {resume.profile.introduction.map((paragraph) => (
-            <li key={paragraph} className="pl-0.5">
-              {paragraph}
-            </li>
-          ))}
+        <ul className={styles.summary}>
+          {resume.profile.introduction.map((paragraph) => <li key={paragraph}>{paragraph}</li>)}
         </ul>
-        <div className="mt-5">
-          <SkillGroups groups={resume.coreSkillGroups} />
-        </div>
       </section>
 
-      <section className="resume-section mb-12 md:mb-14" aria-labelledby="experience-title">
+      <section className={styles.section} aria-labelledby="experience-title">
         <SectionTitle id="experience-title">Work Experience</SectionTitle>
-        <div className="space-y-12 md:space-y-14">
-          {resume.experiences.map((experience) => (
-            <article key={experience.company} className="resume-experience">
-              <header className="grid gap-3 sm:grid-cols-[1fr_auto] sm:gap-x-6">
-                <div className="flex items-start gap-3">
-                  <Image
-                    src={experience.logo}
-                    alt=""
-                    width={32}
-                    height={32}
-                    className="mt-0.5 h-8 w-8 rounded-md object-cover"
-                  />
-                  <div>
-                    <h3 className="text-base font-semibold text-text dark:text-text-dark md:text-lg">
-                      <Link
-                        href={experience.companyUrl}
-                        className="transition-colors hover:text-primary focus-visible:text-primary dark:hover:text-primary-dark dark:focus-visible:text-primary-dark"
-                      >
-                        {experience.company}
-                      </Link>
-                    </h3>
-                    <p className="mt-0.5 text-sm text-text-secondary dark:text-text-secondary-dark">
-                      {experience.role} · {experience.team}
-                    </p>
+        <nav aria-label="회사별 경력 바로가기" className={styles.contents}>
+          <ul>
+            {resume.experiences.map((experience, index) => (
+              <li key={experience.company}>
+                <a href={`#experience-${index}-title`}>{experience.company}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div>
+          {resume.experiences.map((experience, index) => (
+            <article key={experience.company} aria-labelledby={`experience-${index}-title`} className={styles.experience}>
+              <div className={styles.experienceIntro}>
+                <header className={styles.companyHeader}>
+                  <div className={styles.companyIdentity}>
+                    <Image src={experience.logo} alt="" width={40} height={40} className={styles.companyLogo} />
+                    <div>
+                      <h3 id={`experience-${index}-title`} tabIndex={-1} className={styles.companyTitle}>
+                        <Link href={experience.companyUrl}>{experience.company}</Link>
+                      </h3>
+                      <p className={styles.secondary}>{experience.role} · {experience.team}</p>
+                    </div>
                   </div>
-                </div>
-                <p className="pl-11 text-sm tabular-nums text-text-secondary dark:text-text-secondary-dark sm:pl-0 sm:text-right">
-                  {experience.period}
-                </p>
-              </header>
-
-              {experience.summary && (
-                <p className="mt-4 text-sm leading-relaxed text-text dark:text-text-dark md:text-[15px]">
-                  {experience.summary}
-                </p>
-              )}
-              <div className="mt-4">
+                  <p className={styles.period}>{experience.period}</p>
+                </header>
+                {experience.summary && <p className={styles.companySummary}>{experience.summary}</p>}
+                {experience.responsibilities?.length ? (
+                  <dl className={styles.responsibilities}>
+                    {experience.responsibilities.map(({ area, description }) => (
+                      <div key={area}>
+                        <dt>{area}: </dt><dd>{description}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
                 <Tags values={experience.technologies} />
               </div>
-
-              {experience.highlightsTitle && (
-                <h4 className="mt-5 text-base font-semibold leading-snug tracking-tight text-text dark:text-text-dark">
-                  {experience.highlightsTitle}
-                </h4>
-              )}
-
-              <ul
-                className={`${experience.highlightsTitle ? 'mt-2.5' : 'mt-5'} space-y-5 pl-5 ${
-                  experience.highlights.some((highlight) => highlight.title)
-                    ? 'border-l border-border dark:border-border-dark'
-                    : 'list-disc marker:text-primary/70 dark:marker:text-primary-dark/70'
-                }`}
-              >
-                {experience.highlights.map((highlight) => (
-                  <li key={highlight.title ?? highlight.description}>
-                    {highlight.title && (
-                      <h4 className="text-base font-semibold leading-snug tracking-tight text-text dark:text-text-dark">
-                        {highlight.title}
-                      </h4>
-                    )}
-                    <p
-                      className={`${highlight.title ? 'mt-1.5' : ''} text-sm leading-relaxed text-text dark:text-text-dark`}
-                    >
-                      {highlight.description}
-                    </p>
-                    {highlight.details && (
-                      <ul className="mt-2.5 list-disc space-y-2.5 pl-5 marker:text-primary/70 dark:marker:text-primary-dark/70">
-                        {highlight.details.map((detail) => (
-                          <li
-                            key={detail}
-                            className="text-sm leading-relaxed text-text dark:text-text-dark"
-                          >
-                            {detail}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              {experience.highlightsTitle && <h4 className={styles.projectTitle}>{experience.highlightsTitle}</h4>}
+              <Highlights highlights={experience.highlights} heading={experience.highlightsTitle ? 'h5' : 'h4'} />
+              {experience.projects?.map((project) => (
+                <div key={project.title || project.description || project.highlights[0]?.description} className={styles.project}>
+                  <div className={styles.projectIntro}>
+                    {project.title && <h4 className={styles.projectTitle}>{project.title}</h4>}
+                    {project.description && <p className={styles.description}>{project.description}</p>}
+                  </div>
+                  <Highlights highlights={project.highlights} heading={project.title ? 'h5' : 'h4'} />
+                </div>
+              ))}
             </article>
           ))}
         </div>
       </section>
 
-      <section className="resume-section mb-12 md:mb-14" aria-labelledby="other-title">
+      <section className={styles.section} aria-labelledby="other-title">
         <SectionTitle id="other-title">Other Experience</SectionTitle>
-        <div>
-          <CompactItems items={resume.otherExperience} />
-        </div>
+        <CompactItems items={resume.otherExperience} />
       </section>
-
-      <section className="resume-section mb-10" aria-labelledby="education-title">
+      <section className={styles.section} aria-labelledby="education-title">
         <SectionTitle id="education-title">Education</SectionTitle>
-        <div>
-          <CompactItems items={resume.education} />
-        </div>
+        <CompactItems items={resume.education} />
       </section>
     </article>
   )

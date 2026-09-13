@@ -63,3 +63,8 @@ import Image from 'next/image'
 - 파일명은 소문자와 하이픈(-) 사용
 - 예시: `architecture-diagram.png`, `screenshot-1.png`
 - 버전 관리가 필요한 경우: `diagram-v1.png`, `diagram-v2.png`
+
+## 회사 로고 출처
+
+- `about/oliveyoung-symbol.png`: CJ올리브영 공식 기술 블로그의 원본 올리브 심볼. 출처: https://oliveyoung.tech/icons/icon-512x512.png (다운로드 확인: 2026-09-13). 색상·비율을 수정하지 않고 웹·PDF 회사 표시용으로 사용.
+- 브랜드 리소스 안내: https://corp.oliveyoung.com/ko/company/brand
