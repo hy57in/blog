@@ -2,11 +2,9 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { resume, type ResumeHighlight, type ResumeItem } from './resume-data'
-import { isResumeDownloadEnabled, resumeDownloadPath, resumePdfFileName } from './resume-download'
+import { resumeDownloadPath, resumePdfFileName } from './resume-download'
 import styles from './resume.module.css'
 import { BackToTop } from './back-to-top'
-
-const showResumeDownload = isResumeDownloadEnabled(process.env.NODE_ENV)
 
 export const metadata: Metadata = {
   title: 'About',
@@ -105,7 +103,7 @@ export default function AboutPage() {
           className={styles.portrait}
         />
         <div className={styles.identity}>
-            <h1 id="resume-top" tabIndex={-1} className={styles.name}>
+          <h1 id="resume-top" tabIndex={-1} className={styles.name}>
             {resume.profile.name}<span>{resume.profile.englishName}</span>
           </h1>
           <p className={styles.role}>{resume.profile.role}</p>
@@ -119,14 +117,12 @@ export default function AboutPage() {
           </nav>
         </div>
         <div className={styles.profileActions}>
-          {showResumeDownload && (
             <a href={resumeDownloadPath} download={resumePdfFileName} className={styles.download}>
               <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               PDF 다운로드
             </a>
-          )}
           <p className={styles.updated}>Updated {resume.updatedAt}</p>
         </div>
       </header>

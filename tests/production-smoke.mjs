@@ -8,6 +8,7 @@ const startupTimeoutMs = 30_000
 const checks = [
   ['/', 'text/html'],
   ['/about', 'text/html'],
+  ['/about/resume.pdf', 'application/pdf'],
   ['/blog', 'text/html'],
   ['/rss', 'xml'],
   ['/sitemap.xml', 'xml'],
@@ -112,6 +113,16 @@ try {
         throw new Error(
           `${path}: Content-Type이 '${expectedContentType}'을 포함하지 않습니다. (actual: '${contentType}')`,
         )
+      }
+
+      if (path === '/about') {
+        const html = await response.text()
+        if (!html.includes('href="/about/resume.pdf"')) throw new Error('Production resume download link is missing')
+      }
+      if (path === '/about/resume.pdf') {
+        const pdf = Buffer.from(await response.arrayBuffer())
+        if (pdf.subarray(0, 5).toString() !== '%PDF-') throw new Error('Resume response is not a PDF')
+        if (!response.headers.get('content-disposition')?.startsWith('attachment;')) throw new Error('Resume download filename header is missing')
       }
 
       console.log(`✓ ${path} (${response.status}, ${contentType})`)

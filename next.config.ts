@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { resumeDownloadPath, resumePdfFallbackFileName, resumePdfFileName } from './app/about/resume-download'
 
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -12,6 +13,10 @@ const nextConfig: NextConfig = {
   // typedRoutes: true, // Enable for compile-time type safety on routes (requires route type adjustments)
   async headers() {
     return [
+      {
+        source: resumeDownloadPath,
+        headers: [{ key: 'Content-Disposition', value: `attachment; filename="${resumePdfFallbackFileName}"; filename*=UTF-8''${encodeURIComponent(resumePdfFileName)}` }],
+      },
       {
         source: '/:path*',
         headers: securityHeaders,
