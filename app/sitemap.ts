@@ -1,7 +1,8 @@
 import { getBlogPosts } from 'app/blog/utils'
 import type { MetadataRoute } from 'next'
+import { baseUrl } from './seo'
 
-export const baseUrl = 'https://hyojin.dev'
+export { baseUrl } from './seo'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const blogs = getBlogPosts().map((post) => ({
@@ -11,7 +12,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const routes = ['', '/about', '/blog'].map((route) => ({
     url: `${baseUrl}${route}`,
-    lastModified: new Date().toISOString().split('T')[0],
   }))
 
   return [...routes, ...blogs]

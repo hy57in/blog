@@ -6,7 +6,7 @@ import { Navbar } from './components/nav'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import Footer from './components/footer'
-import { baseUrl } from './sitemap'
+import { baseUrl } from './seo'
 import themeEffect from '../utils/themeEffect'
 import Script from 'next/script'
 

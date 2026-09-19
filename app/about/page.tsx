@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import { pageMetadata } from 'app/seo'
 import Image from 'next/image'
 import Link from 'next/link'
 import { resume, type ResumeHighlight, type ResumeItem } from './resume-data'
@@ -6,14 +6,7 @@ import { resumeDownloadPath, resumePdfFileName } from './resume-download'
 import styles from './resume.module.css'
 import { BackToTop } from './back-to-top'
 
-export const metadata: Metadata = {
-  title: 'About',
-  description: resume.profile.headline,
-  openGraph: {
-    title: `${resume.profile.name} | ${resume.profile.role}`,
-    description: resume.profile.headline,
-  },
-}
+export const metadata = pageMetadata('/about', '김효진 소개·이력서', resume.profile.headline)
 
 function SectionTitle({ children, id }: { children: React.ReactNode; id: string }) {
   return <h2 id={id} className={styles.sectionTitle}>{children}</h2>

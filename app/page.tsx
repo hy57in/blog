@@ -1,10 +1,25 @@
 import { BlogPosts } from 'app/components/posts'
 import Link from 'next/link'
 import styles from './page.module.css'
+import { baseUrl, pageMetadata, serializeJsonLd, siteName } from './seo'
+
+export const metadata = pageMetadata(
+  '/',
+  '김효진 | 프론트엔드 개발 블로그',
+  '프론트엔드 개발자 김효진의 블로그. 개발하며 마주한 문제와 해결 과정, 실무 경험과 배움을 기록합니다.',
+)
 
 export default function Page() {
   return (
     <section className={styles.home}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: siteName,
+        alternateName: '김효진 개발 블로그',
+        url: baseUrl,
+        inLanguage: 'ko-KR',
+      }) }} />
       <header className={styles.intro}>
         <h1 className={styles.title}>
           환영합니다! <span className={styles.emoji} aria-hidden="true">🤍 😎 👩🏻‍💻</span>

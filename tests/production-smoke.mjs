@@ -1,9 +1,13 @@
 import { spawn } from 'node:child_process'
 import { once } from 'node:events'
 import { createServer } from 'node:net'
+import { readdir } from 'node:fs/promises'
 
 const host = '127.0.0.1'
 const startupTimeoutMs = 30_000
+const articlePaths = (await readdir(new URL('../posts/', import.meta.url)))
+  .filter((name) => name.endsWith('.mdx'))
+  .map((name) => `/blog/${name.slice(0, -4)}`)
 
 const checks = [
   ['/', 'text/html'],
@@ -15,6 +19,7 @@ const checks = [
   ['/robots.txt', 'text/plain'],
   ['/manifest.json', 'json'],
   ['/favicon/favicon.ico', 'image/'],
+  ...articlePaths.map((path) => [path, 'text/html']),
 ]
 
 const delay = (milliseconds) =>
@@ -115,9 +120,18 @@ try {
         )
       }
 
-      if (path === '/about') {
+      if (expectedContentType === 'text/html') {
         const html = await response.text()
-        if (!html.includes('href="/about/resume.pdf"')) throw new Error('Production resume download link is missing')
+        const canonical = path === '/' ? 'https://hyojin.dev' : `https://hyojin.dev${path}`
+        if (!html.includes(`<link rel="canonical" href="${canonical}"`)) throw new Error(`${path}: canonical missing or incorrect`)
+        if (!html.includes(`property="og:url" content="${canonical}"`)) throw new Error(`${path}: Open Graph URL incorrect`)
+        if (!html.includes('property="og:image"') || !html.includes('name="twitter:card" content="summary_large_image"')) throw new Error(`${path}: share image metadata missing`)
+        if (path === '/about' && !html.includes('href="/about/resume.pdf"')) throw new Error('Production resume download link is missing')
+        if (articlePaths.includes(path)) {
+          const scripts = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+          const article = scripts.map((match) => JSON.parse(match[1])).find((data) => data['@type'] === 'BlogPosting')
+          if (!article || article.url !== canonical || article.author?.url !== 'https://hyojin.dev/about') throw new Error(`${path}: article structured data incorrect`)
+        }
       }
       if (path === '/about/resume.pdf') {
         const pdf = Buffer.from(await response.arrayBuffer())
@@ -128,6 +142,10 @@ try {
       console.log(`✓ ${path} (${response.status}, ${contentType})`)
     }),
   )
+
+  const missing = await fetch(`${baseUrl}/blog/__missing-seo-check__`)
+  if (missing.status !== 404) throw new Error('Unknown article must return 404')
+  console.log('✓ unknown article (404)')
 } catch (error) {
   if (serverOutput) {
     console.error('\n프로덕션 서버 출력:\n', serverOutput)

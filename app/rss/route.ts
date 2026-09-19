@@ -1,4 +1,4 @@
-import { baseUrl } from 'app/sitemap'
+import { baseUrl } from 'app/seo'
 import { getBlogPosts } from 'app/blog/utils'
 import { buildRssFeed } from './utils'
 

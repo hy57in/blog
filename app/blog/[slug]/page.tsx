@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { CustomMDX } from 'app/components/mdx'
 import { formatDate, getBlogPosts } from 'app/blog/utils'
-import { baseUrl } from 'app/sitemap'
+import { baseUrl, pageMetadata, serializeJsonLd } from 'app/seo'
 
 
 export async function generateStaticParams() {
@@ -28,19 +28,22 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     image,
   } = post.metadata
   const ogImage = image ? new URL(image, baseUrl).toString() : `${baseUrl}/og?title=${encodeURIComponent(title)}`
+  const metadata = pageMetadata(`/blog/${post.slug}`, title, description)
 
   return {
-    title,
-    description,
+    ...metadata,
     openGraph: {
+      ...metadata.openGraph,
       title,
       description,
       type: 'article',
       publishedTime,
+      authors: [`${baseUrl}/about`],
       url: `${baseUrl}/blog/${post.slug}`,
       images: [
         {
           url: ogImage,
+          alt: title,
         },
       ],
     },
@@ -65,22 +68,23 @@ export default async function Blog(props: { params: Promise<{ slug: string }> })
     <section className="article-page">
       <script
         type="application/ld+json"
-        suppressHydrationWarning
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: serializeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'BlogPosting',
             headline: post.metadata.title,
             datePublished: post.metadata.publishedAt,
-            dateModified: post.metadata.publishedAt,
             description: post.metadata.summary,
             image: post.metadata.image
               ? new URL(post.metadata.image, baseUrl).toString()
               : `${baseUrl}/og?title=${encodeURIComponent(post.metadata.title)}`,
             url: `${baseUrl}/blog/${post.slug}`,
+            mainEntityOfPage: `${baseUrl}/blog/${post.slug}`,
+            inLanguage: 'ko-KR',
             author: {
               '@type': 'Person',
               name: 'Hyojin Kim',
+              url: `${baseUrl}/about`,
             },
           }),
         }}
