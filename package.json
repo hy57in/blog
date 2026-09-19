@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "oxlint --type-aware --report-unused-disable-directives --max-warnings 0 .",
     "lint:fix": "oxlint --type-aware --report-unused-disable-directives --fix .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "node --experimental-default-type=module --experimental-strip-types --test tests/*.test.mts",
     "smoke": "node tests/production-smoke.mjs",
     "resume:pdf": "node --experimental-default-type=module --experimental-strip-types scripts/generate-resume.mts",

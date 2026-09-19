@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import type { Route } from 'next'
 import { usePathname } from 'next/navigation'
 import { ThemeSwitcher } from './theme-switcher'
 
@@ -8,7 +9,7 @@ const navItems = [
   { path: '/', name: 'home' },
   { path: '/blog', name: 'blog' },
   { path: '/about', name: 'about' },
-] as const
+] as const satisfies readonly { path: Route; name: string }[]
 
 export function Navbar() {
   const pathname = usePathname()

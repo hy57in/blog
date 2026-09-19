@@ -61,7 +61,7 @@ function Highlights({
           {highlight.links?.length ? (
             <p className={styles.relatedLinks}>
               {highlight.links.map((link) => (
-                <Link key={link.href} href={link.href}>
+                <Link key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" aria-label={`${link.label} (새 탭)`}>
                   {link.label}<span className={styles.externalMark} aria-hidden="true">↗</span>
                 </Link>
               ))}
@@ -109,7 +109,10 @@ export default function AboutPage() {
           <p className={styles.role}>{resume.profile.role}</p>
           <nav aria-label="연락처" className={styles.contacts}>
             {resume.profile.links.map((link) => (
-              <Link key={link.label} href={link.href}>
+              <Link key={link.label} href={link.href}
+                target={link.href.startsWith('https://') ? '_blank' : undefined}
+                rel={link.href.startsWith('https://') ? 'noopener noreferrer' : undefined}
+                aria-label={link.href.startsWith('https://') ? `${link.label} (새 탭)` : link.label}>
                 <span className={styles.contactLabel}>{link.label}</span>
                 <span className={styles.contactValue}>{link.display}</span>
               </Link>
@@ -154,7 +157,7 @@ export default function AboutPage() {
                     <Image src={experience.logo} alt="" width={40} height={40} className={styles.companyLogo} />
                     <div>
                       <h3 id={`experience-${index}-title`} tabIndex={-1} className={styles.companyTitle}>
-                        <Link href={experience.companyUrl}>{experience.company}</Link>
+                        <Link href={experience.companyUrl} target="_blank" rel="noopener noreferrer" aria-label={`${experience.company} (새 탭)`}>{experience.company}</Link>
                       </h3>
                       <p className={styles.secondary}>{experience.role} · {experience.team}</p>
                     </div>

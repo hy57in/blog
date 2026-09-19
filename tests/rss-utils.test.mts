@@ -2,14 +2,14 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { buildRssFeed, escapeXml } from '../app/rss/utils.ts'
 
-test('escapes XML-sensitive text', () => {
+void test('escapes XML-sensitive text', () => {
   assert.equal(
     escapeXml(`React & Next <Guide> "2026" 'edition'`),
     'React &amp; Next &lt;Guide&gt; &quot;2026&quot; &apos;edition&apos;'
   )
 })
 
-test('builds valid RSS items without changing post order', () => {
+void test('builds valid RSS items without changing post order', () => {
   const posts = [
     {
       slug: 'newest',

@@ -4,7 +4,7 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import { highlight } from 'sugar-high'
 import React from 'react'
 import type { ComponentProps, ComponentPropsWithoutRef, ReactNode } from 'react'
-import { getLinkKind } from './link-utils'
+import { getLinkKind, isContentPageRoute } from './link-utils'
 import { getTextContent, slugifyHeading } from './mdx-utils'
 
 function Table({ data }: { data: { headers: string[], rows: string[][] } }) {
@@ -32,7 +32,7 @@ function Table({ data }: { data: { headers: string[], rows: string[][] } }) {
 function CustomLink({ href = '', children, ...props }: ComponentPropsWithoutRef<'a'>) {
   const linkKind = getLinkKind(href)
 
-  if (linkKind === 'internal') {
+  if (isContentPageRoute(href)) {
     return (
       <Link href={href} {...props}>
         {children}
@@ -40,11 +40,11 @@ function CustomLink({ href = '', children, ...props }: ComponentPropsWithoutRef<
     )
   }
 
-  if (linkKind === 'anchor') {
+  if (linkKind === 'anchor' || linkKind === 'internal' || /^(mailto:|tel:)/.test(href)) {
     return <a href={href} {...props}>{children}</a>
   }
 
-  return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
+  return <a href={href} {...props} target="_blank" rel="noopener noreferrer">{children}</a>
 }
 
 type RoundedImageProps = Omit<ComponentProps<typeof Image>, 'alt' | 'width' | 'height'> & {

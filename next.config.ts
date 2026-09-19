@@ -10,7 +10,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   agentRules: false,
-  // typedRoutes: true, // Enable for compile-time type safety on routes (requires route type adjustments)
+  typedRoutes: true,
   async headers() {
     return [
       {

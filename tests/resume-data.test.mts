@@ -7,7 +7,7 @@ import {
   resumePdfFileName,
 } from '../app/about/resume-download.ts'
 
-test('keeps resume profile and contact links complete', () => {
+void test('keeps resume profile and contact links complete', () => {
   assert.ok(resume.profile.name)
   assert.equal(
     resume.profile.headline,
@@ -25,7 +25,7 @@ test('keeps resume profile and contact links complete', () => {
   ])
 })
 
-test('keeps company-specific title and supporting copy styles', () => {
+void test('keeps company-specific title and supporting copy styles', () => {
   const experienceContent = resume.experiences
     .flatMap((experience) => [experience, experience.pdf])
   const achievementTitles = resume.experiences
@@ -66,7 +66,7 @@ test('keeps company-specific title and supporting copy styles', () => {
   }
 })
 
-test('keeps every experience ready for both web and PDF rendering', () => {
+void test('keeps every experience ready for both web and PDF rendering', () => {
   assert.ok(resume.experiences.length >= 4)
 
   for (const experience of resume.experiences) {
@@ -86,7 +86,7 @@ test('keeps every experience ready for both web and PDF rendering', () => {
   }
 })
 
-test('preserves restored company details and approved responsibilities in web and PDF', () => {
+void test('preserves restored company details and approved responsibilities in web and PDF', () => {
   const todayHouse = resume.experiences.find(({ company }) => company === '버킷플레이스(오늘의집)')
   const bemyfriends = resume.experiences.find(({ company }) => company === '비마이프렌즈(bemyfriends)')
   assert.ok(todayHouse)
@@ -196,7 +196,7 @@ test('preserves restored company details and approved responsibilities in web an
   )
 })
 
-test('preserves the separate Toss PDF summary', () => {
+void test('preserves the separate Toss PDF summary', () => {
   const toss = resume.experiences.find(({ company }) => company === '비바리퍼블리카(Toss)')
   assert.ok(toss)
   assert.deepEqual(toss.highlights.map((highlight) => highlight.title), [
@@ -208,7 +208,7 @@ test('preserves the separate Toss PDF summary', () => {
   assert.ok(toss.pdf.highlights.every((highlight) => !highlight.title))
 })
 
-test('keeps approved Olive Young projects and internal activities identical in web and PDF', () => {
+void test('keeps approved Olive Young projects and internal activities identical in web and PDF', () => {
   const oliveYoung = resume.experiences.find((experience) => experience.company === 'CJ올리브영')
 
   assert.ok(oliveYoung)
@@ -254,7 +254,7 @@ test('keeps approved Olive Young projects and internal activities identical in w
   }
 })
 
-test('excludes superseded screen totals and unverified migration metrics', () => {
+void test('excludes superseded screen totals and unverified migration metrics', () => {
   const oliveYoung = resume.experiences.find((experience) => experience.company === 'CJ올리브영')
   assert.ok(oliveYoung)
   const text = JSON.stringify(oliveYoung)
@@ -262,14 +262,14 @@ test('excludes superseded screen totals and unverified migration metrics', () =>
   assert.doesNotMatch(text, /운영 전환 완료|운영 사용 완료|자동 동기화|장애 감소율/)
 })
 
-test('keeps the reviewed education entries', () => {
+void test('keeps the reviewed education entries', () => {
   assert.deepEqual(resume.education.map((education) => education.name), [
     '중앙대학교 소프트웨어학부 소프트웨어학과',
     '세종과학고등학교',
   ])
 })
 
-test('keeps the reviewed community descriptions in the shared resume data', () => {
+void test('keeps the reviewed community descriptions in the shared resume data', () => {
   assert.deepEqual(
     resume.otherExperience.map(({ name, description }) => ({ name, description })),
     [
@@ -287,14 +287,14 @@ test('keeps the reviewed community descriptions in the shared resume data', () =
   )
 })
 
-test('keeps the public resume download path and filenames stable', () => {
+void test('keeps the public resume download path and filenames stable', () => {
   assert.equal(resumeDownloadPath, '/about/resume.pdf')
   assert.equal(resumePdfFileName, '김효진_Frontend_Resume.pdf')
   assert.equal(resumePdfFallbackFileName, 'Hyojin_Kim_Frontend_Resume.pdf')
 })
 
 
-test('attaches writing links to the relevant career examples', () => {
+void test('attaches writing links to the relevant career examples', () => {
   const oliveYoung = resume.experiences.find(({ company }) => company === 'CJ올리브영')!
   const migration = oliveYoung.projects![2].highlights.find(({ title }) => title?.includes('Nexacro'))!
   const todayHouse = resume.experiences.find(({ company }) => company.includes('오늘의집'))!

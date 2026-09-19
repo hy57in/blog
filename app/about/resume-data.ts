@@ -1,7 +1,7 @@
 export type ResumeLink = {
   label: string
   display: string
-  href: string
+  href: `https://${string}` | `mailto:${string}`
 }
 
 export type ResumeHighlight = {
@@ -28,7 +28,7 @@ export type ResumeExperienceContent = {
 
 export type ResumeExperience = ResumeExperienceContent & {
   company: string
-  companyUrl: string
+  companyUrl: `https://${string}`
   logo: string
   role: string
   team: string
