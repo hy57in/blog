@@ -9,7 +9,7 @@
   --section-size: 23px;
   --company-size: 22px;
   --project-size: 19px;
-  --highlight-size: 16px;
+  --highlight-size: 17px;
   --section-gap: 52px;
   --company-gap: 52px;
   --project-gap: 32px;
@@ -20,7 +20,7 @@
   line-height: var(--body-leading);
   overflow-wrap: anywhere;
   word-break: keep-all;
-  padding-block: 24px 40px;
+  padding-block: 0 40px;
 }
 
 :global(.dark) .page {
@@ -65,7 +65,7 @@
 .details li::marker { color: var(--resume-secondary); }
 .contents { margin-block: -6px 28px; font-size: var(--small-size); }
 .contents ul { display: flex; flex-wrap: wrap; gap: 4px 18px; list-style: none; padding: 0; }
-.contents a { display: inline-block; padding-block: 5px; text-decoration: none; color: var(--resume-secondary); }
+.contents a { display: inline-flex; align-items: center; min-height: 44px; padding-block: 5px; text-decoration: none; color: var(--resume-secondary); }
 .experience + .experience { margin-top: var(--company-gap); }
 .companyHeader { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px 20px; }
 .companyIdentity { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }

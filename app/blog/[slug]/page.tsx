@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { CustomMDX } from 'app/components/mdx'
 import { formatDate, getBlogPosts } from 'app/blog/utils'
@@ -61,7 +62,7 @@ export default async function Blog(props: { params: Promise<{ slug: string }> })
   }
 
   return (
-    <section>
+    <section className="article-page">
       <script
         type="application/ld+json"
         suppressHydrationWarning
@@ -84,17 +85,25 @@ export default async function Blog(props: { params: Promise<{ slug: string }> })
           }),
         }}
       />
-      <h1 className="title font-semibold text-2xl tracking-tighter">
+      <header className="article-header">
+      <Link className="text-link article-back" href="/blog">← 전체 글</Link>
+      <h1 className="title page-title">
         {post.metadata.title}
       </h1>
-      <div className="mt-2 mb-8 text-sm">
+      <div className="mt-4 text-sm">
         <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
           <time dateTime={post.metadata.publishedAt}>{formatDate(post.metadata.publishedAt)}</time>
         </p>
       </div>
+      <p className="page-description">{post.metadata.summary}</p>
+      </header>
       <article className="prose">
         <CustomMDX source={post.content} />
       </article>
+      <nav aria-label="글 하단 탐색" className="article-end">
+        <p>다른 개발 이야기도 읽어보세요.</p>
+        <Link className="text-link" href="/blog">전체 글로 돌아가기 <span aria-hidden="true">→</span></Link>
+      </nav>
     </section>
   )
 }

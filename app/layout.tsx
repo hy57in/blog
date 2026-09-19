@@ -96,8 +96,9 @@ export default function RootLayout({
             gtag('config', 'G-J9LSPGLFSZ');
           `}
         </Script>
+        <a className="skip-link" href="#main-content">본문으로 바로가기</a>
         <Navbar />
-        <main className="flex-1 max-w-2xl mx-auto px-4 w-full">
+        <main id="main-content" tabIndex={-1} className="site-shell site-main flex-1">
           {children}
         </main>
         <Footer />

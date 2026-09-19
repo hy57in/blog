@@ -17,9 +17,9 @@ function ArrowIcon() {
 
 export default function Footer() {
   return (
-    <footer className="mb-10 flex">
-      <div className="max-w-2xl mx-auto px-4 w-full">
-      <ul className="font-sm mt-8 flex flex-row gap-4 space-x-0 space-y-2 md:flex-row md:space-x-4 md:space-y-0">
+    <footer className="site-shell site-footer">
+      <div className="w-full">
+      <ul aria-label="추가 링크" className="flex flex-row gap-6 mb-3">
         <li>
           <a
             className="flex items-center footer-link"
