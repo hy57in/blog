@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { Route } from 'next'
 import { usePathname } from 'next/navigation'
 import { ThemeSwitcher } from './theme-switcher'
+import { BackgroundMusic } from './background-music'
 
 const navItems = [
   { path: '/', name: 'home' },
@@ -45,7 +46,10 @@ export function Navbar() {
             })}
           </div>
         </nav>
-        <ThemeSwitcher />
+        <div className="flex shrink-0 items-center gap-1">
+          <BackgroundMusic />
+          <ThemeSwitcher />
+        </div>
       </div>
     </aside>
   )
