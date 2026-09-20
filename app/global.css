@@ -369,7 +369,37 @@ html.dark { --ui-muted: var(--color-text-secondary-dark); --ui-line: var(--color
   .prose h2 { font-size: 22px; }
   .prose h3 { font-size: 19px; }
 }
+/* Keep motion short, and leave content visible without animation support. */
+@keyframes content-arrive {
+  from { opacity: .75; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .site-main > :is(section, article) > header {
+    animation: content-arrive 260ms ease-out;
+  }
+  .post-row {
+    transition: background-color 160ms ease, transform 160ms ease;
+  }
+  .post-title { transition: color 160ms ease; }
+  .text-link > span[aria-hidden="true"] {
+    display: inline-block;
+    transition: transform 160ms ease;
+  }
+  .text-link:focus-visible > span[aria-hidden="true"] { transform: translateX(3px); }
+  .theme-toggle { transition: background-color 160ms ease, transform 120ms ease; }
+  .theme-toggle svg { transition: transform 180ms ease; }
+  .theme-toggle:active { transform: scale(.94); }
+}
+
+@media screen and (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .post-row:hover { transform: translateX(3px); }
+  .text-link:hover > span[aria-hidden="true"] { transform: translateX(3px); }
+  .theme-toggle:hover svg { transform: rotate(12deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto !important; }
-  *, *::before, *::after { transition-duration: 0s !important; }
+  *, *::before, *::after { transition-duration: 0s !important; animation: none !important; }
 }

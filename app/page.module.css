@@ -3,7 +3,33 @@
 }
 
 .intro {
-  padding-bottom: 36px;
+  padding-bottom: 32px;
+}
+
+.introHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.introHeading > div { min-width: 0; }
+
+.byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 8px;
+  color: var(--ui-muted);
+  font-size: 12px;
+}
+
+.portrait {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .title {
@@ -39,21 +65,34 @@
 .shortcuts {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 24px;
-  margin-top: 16px;
+  gap: 8px 24px;
+  margin-top: 20px;
   font-size: 14px;
 }
 
 .shortcuts a {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-height: 44px;
   color: var(--ui-accent);
   text-underline-offset: 5px;
 }
 
+.shortcuts svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 .shortcuts a:hover { text-decoration: underline; }
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .shortcuts a { transition: background-color 160ms ease, border-color 160ms ease, transform 240ms cubic-bezier(.22, 1, .36, 1); }
+  .shortcuts a > span { transition: transform 160ms ease; }
+  .shortcuts a:focus-visible > span { transform: translateX(3px); }
+}
+
+@media screen and (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .shortcuts a:hover { transform: translateY(-2px); }
+  .shortcuts a:active { transform: scale(.97); }
+  .shortcuts a:hover > span { transform: translateX(3px); }
+}
 
 .writingHeader {
   display: flex;
@@ -101,9 +140,14 @@
 
 @media (max-width: 600px) {
   .home { padding-top: 0; }
-  .title { font-size: 26px; }
-  .emoji { font-size: 20px; }
+  .title { font-size: 24px; gap: 6px; }
+  .emoji { font-size: 18px; }
+  .introHeading { align-items: flex-start; gap: 12px; }
+  .portrait { width: 56px; height: 56px; }
   .description { font-size: 15px; margin-top: 16px; }
-  .intro { padding-bottom: 28px; }
-  .writing { padding-top: 20px; }
+  .intro { padding-bottom: 24px; }
+  .shortcuts { gap: 8px 20px; }
+  .shortcuts a { gap: 6px; font-size: 13px; }
+  .shortcuts a > span { display: none; }
+  .writing { padding-top: 28px; }
 }
